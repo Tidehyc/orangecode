@@ -1,4 +1,43 @@
 from orangecode.agent.loop import AgentLoop, AgentLoopOutcome
-from orangecode.agent.tools import Tool, ToolRegistry, ToolResult
+from orangecode.agent.subagent import SpawnTool, SubagentManager, SubagentOutcome, SubagentStatus
+from orangecode.agent.tools import (
+    AskUserTool,
+    BashTool,
+    EditFileTool,
+    FindTool,
+    GrepTool,
+    ListDirTool,
+    ReadFileTool,
+    Tool,
+    ToolIndex,
+    ToolRegistry,
+    ToolResult,
+    ToolSearchTool,
+    WebFetchTool,
+    WebSearchTool,
+    WriteFileTool,
+)
 
-__all__ = ["AgentLoop", "AgentLoopOutcome", "Tool", "ToolRegistry", "ToolResult"]
+__all__ = [
+    "AgentLoop",
+    "AgentLoopOutcome",
+    "Tool",
+    "ToolRegistry",
+    "ToolResult",
+    "ReadFileTool",
+    "WriteFileTool",
+    "EditFileTool",
+    "ListDirTool",
+    "FindTool",
+    "GrepTool",
+    "WebFetchTool",
+    "WebSearchTool",
+    "AskUserTool",
+    "ToolIndex",
+    "ToolSearchTool",
+    "BashTool",
+    "SubagentManager",
+    "SpawnTool",
+    "SubagentOutcome",
+    "SubagentStatus",
+]
