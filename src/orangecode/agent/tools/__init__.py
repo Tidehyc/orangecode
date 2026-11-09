@@ -15,6 +15,7 @@ from orangecode.agent.tools.filesystem import (
     ReadFileTool,
     WriteFileTool,
 )
+from orangecode.agent.tools.mcp import MCPToolWrapper
 from orangecode.agent.tools.tool_index import ToolIndex
 from orangecode.agent.tools.tool_search import ToolSearchTool
 from orangecode.agent.tools.web import WebFetchTool, WebSearchTool
@@ -40,4 +41,5 @@ __all__ = [
     "ToolIndex",
     "ToolSearchTool",
     "BashTool",
+    "MCPToolWrapper",
 ]

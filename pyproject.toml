@@ -19,6 +19,7 @@ dependencies = [
     "orjson>=3.10.0",
     "numpy>=1.26.0",
     "croniter>=6.0.0",
+    "mcp>=1.2.0",
 ]
 
 [project.optional-dependencies]
