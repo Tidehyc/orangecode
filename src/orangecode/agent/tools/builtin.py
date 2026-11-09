@@ -1,10 +1,11 @@
 """常用内置工具集：文件读写与终端命令执行。"""
 
-import asyncio
 from pathlib import Path
 from typing import Any
 
 from orangecode.agent.tools.base import Tool, ToolResult
+from orangecode.sandbox.direct_executor import DirectExecutor
+from orangecode.sandbox.interfaces import CommandExecutor
 
 
 class ReadFileTool(Tool):
@@ -83,24 +84,10 @@ class BashTool(Tool):
     }
     timeout_seconds = 60.0
 
+    def __init__(self, executor: CommandExecutor | None = None) -> None:
+        self.executor = executor or DirectExecutor()
+
     async def execute(self, command: str, **kwargs: Any) -> ToolResult:
-        try:
-            proc = await asyncio.create_subprocess_shell(
-                command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            stdout_bytes, stderr_bytes = await proc.communicate()
-            stdout_str = stdout_bytes.decode("utf-8", errors="replace")
-            stderr_str = stderr_bytes.decode("utf-8", errors="replace")
-            exit_code = proc.returncode
-
-            output = f"Exit code: {exit_code}\n"
-            if stdout_str:
-                output += f"--- stdout ---\n{stdout_str}\n"
-            if stderr_str:
-                output += f"--- stderr ---\n{stderr_str}\n"
-
-            return ToolResult(output.strip(), failed=(exit_code != 0))
-        except Exception as e:
-            return ToolResult(f"Error executing command '{command}': {e}", failed=True)
+        result = await self.executor.execute(command, timeout=self.timeout_seconds)
+        output_text = result.as_text()
+        return ToolResult(output_text, failed=(result.exit_code != 0))
