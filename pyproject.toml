@@ -17,6 +17,7 @@ dependencies = [
     "litellm>=1.40.0",
     "tiktoken>=0.7.0",
     "orjson>=3.10.0",
+    "numpy>=1.26.0",
 ]
 
 [project.optional-dependencies]
