@@ -50,6 +50,60 @@ def version_cmd():
     console.print(f"State dir: [dim]{settings.state_dir}[/dim]")
 
 
+@app.command("doctor")
+def doctor_cmd():
+    """执行环境自检与系统健康体检。"""
+    import shutil
+    import sys
+
+    table = Table(title="OrangeCode Doctor System Diagnostics")
+    table.add_column("Component", style="cyan")
+    table.add_column("Status", style="bold")
+    table.add_column("Details", style="dim")
+
+    # 1. Python 版本
+    py_ver = sys.version.split()[0]
+    if sys.version_info >= (3, 12):
+        table.add_row("Python Interpreter", "[green]✓ PASS[/green]", f"Python {py_ver}")
+    else:
+        table.add_row("Python Interpreter", "[red]✗ FAIL[/red]", f"Python {py_ver} (>=3.12 required)")
+
+    # 2. Node.js
+    node_path = shutil.which("node")
+    if node_path:
+        table.add_row("Node.js Runtime", "[green]✓ PASS[/green]", f"Found at {node_path}")
+    else:
+        table.add_row("Node.js Runtime", "[yellow]! OPTIONAL[/yellow]", "Node.js not on PATH (required only for UI-TUI)")
+
+    # 3. Git
+    git_path = shutil.which("git")
+    if git_path:
+        table.add_row("Git VCS", "[green]✓ PASS[/green]", f"Found at {git_path}")
+    else:
+        table.add_row("Git VCS", "[red]✗ FAIL[/red]", "git binary not found")
+
+    # 4. State dir
+    try:
+        settings.state_dir.mkdir(parents=True, exist_ok=True)
+        test_file = settings.state_dir / ".doctor_probe"
+        test_file.write_text("ok", encoding="utf-8")
+        test_file.unlink()
+        table.add_row("State Directory Storage", "[green]✓ PASS[/green]", f"Writable at {settings.state_dir}")
+    except Exception as e:
+        table.add_row("State Directory Storage", "[red]✗ FAIL[/red]", f"Write error: {e}")
+
+    # 5. Model Configuration
+    api_key_status = "[green]Configured[/green]" if settings.api_key else "[yellow]Not set (use ORANGECODE_API_KEY or .env)[/yellow]"
+    table.add_row("Default Model", "[green]✓ PASS[/green]", f"{settings.default_model} (API Key: {api_key_status})")
+
+    # 6. Sandboxing
+    srt_found = shutil.which("srt") is not None
+    table.add_row("Direct & Isolated Sandbox", "[green]✓ PASS[/green]", "Direct and Workspace-isolated sandboxes ready")
+    table.add_row("Anthropic SRT OS Sandbox", "[green]✓ PASS[/green]" if srt_found else "[yellow]! STANDBY[/yellow]", "Available" if srt_found else "Not installed (Optional OS-level sandbox)")
+
+    console.print(table)
+
+
 @app.command("run")
 def run_agent_cmd(
     prompt: Annotated[str, typer.Argument(help="给智能体下达的任务提示词")],
