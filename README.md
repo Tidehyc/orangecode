@@ -1,111 +1,152 @@
 # OrangeCode
 
 > 面向多任务并发与多轮对话的开源 Agent Harness。
-> 具备分层上下文治理、会话队列隔离、生命周期打断抢占与安全执行沙箱。
+> 1:1 完整复刻自 `CodeFlow-harness` 工业级架构，具备分层上下文治理、会话队列隔离、生命周期打断抢占、多模型 KNN 智能路由、自进化树、飞书/企微网关与安全执行沙箱。
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-Apache--2.0-0B7285)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-21%20passed-brightgreen)](tests)
+[![Tests](https://img.shields.io/badge/tests-46%20passed-brightgreen)](tests)
+[![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 ---
 
-## 架构概览
+## 架构拓扑全景
 
 ```mermaid
 flowchart TD
-    U["用户 / 外部系统"] --> CLI["CLI (orangecode run / chat / session)"]
-    CLI --> S["Spine 调度总线 (Scheduler)"]
+    User["用户 / 外部系统"] --> Entry["多端入口 (CLI / Webhook / JSON-RPC / UI-TUI)"]
+    Entry --> S["Spine 调度总线 (SpineScheduler)"]
 
     subgraph 调度与隔离 [Spine Domain]
         S --> Pools["OriginPools (USER / CRON 并发池隔离)"]
-        S --> Lane["Lane / Worker (单会话绝对有序)"]
-        Lane --> Policy["BusyPolicy (APPEND / INTERRUPT / INJECT)"]
+        S --> Lane["Lane / Worker (按会话严格串行)"]
+        Lane --> Policy["BusyPolicy (APPEND / INTERRUPT 抢占 / INJECT)"]
     end
 
-    subgraph 运行时 [Agent Runtime]
+    subgraph 运行时核心 [Agent Runtime]
         Lane --> Loop["Agent Loop (ReAct / Tool Calling)"]
+        Loop <--> Sub["SubagentManager (后台并发派发 / 防分叉限流)"]
         Loop <--> Ctx["Context Assembler (分层预算 / 原子闭包 / 旧工具压缩)"]
-        Loop <--> ToolReg["Tool Registry (文件读写 / 终端执行)"]
-        ToolReg <--> Sandbox["Sandbox (DirectExecutor / IsolatedWorkspace)"]
-        Loop <--> Provider["LiteLLM Provider (支持 100+ 模型)"]
+        Loop <--> ToolReg["Tool Registry (文件切片 / 正则搜索 / 网页抓取 / 审批阻断)"]
+        ToolReg <--> Sandbox["Sandbox (Direct / Isolated / Anthropic SRT)"]
+        Loop <--> Router["KNN Model Router (余弦相似度 / 效用收益评估)"]
+        Router <--> Fallback["FallbackProvider (指数退避 / 跨模型自动降级)"]
     end
 
-    subgraph 持久化 [Persistence]
-        Lane --> Session["SessionManager (原子持久化 / Checkpoint 恢复)"]
+    subgraph 进化与记忆 [Evolution & Memory]
+        Loop <--> Mem["MemoryConsolidator (episodes.md / user_profile.md)"]
+        Loop <--> Skills["SkillWatcher (本地技能包发现与解析)"]
+        Loop <--> Evolver["Evolver Engine (变体清单 / 进化树 / UCB 老虎机 / 统计门禁)"]
+    end
+
+    subgraph 渠道与常驻 [Channels & Gateway]
+        S <--> Chan["ChannelManager (飞书 Lark / 企业微信 WeCom 适配器)"]
+        S <--> Cron["CronService (基于 croniter 的后台定时任务引擎)"]
+        S <--> RPC["TuiRpcServer (JSON-RPC 2.0 双向总线)"]
+        RPC <--> TUI["UI-TUI (Node.js 24 + React + Ink 原生终端前端)"]
+    end
+
+    subgraph 观测与持久化 [Tracing & Persistence]
+        Lane --> Session["SessionManager (StorageEpoch / SHA-256 验真导出)"]
+        Loop --> Trace["OpenTelemetry Tracer (分布式 Span 链)"]
+        Loop --> Cost["CostLedger & Pricing (Token 消耗财务账本)"]
     end
 ```
-
-## 核心特性
-
-1. **Spine 调度骨干与并发隔离**：
-   - **Lane / Worker 架构**：单会话保证严格串行有序，跨会话支持高并发并行。
-   - **OriginPools**：真实用户请求与后台/Cron/Subagent 任务使用独立信号量池，彻底杜绝后台批量任务打满配额导致交互饥饿。
-   - **BusyPolicy 抢占**：支持 `INTERRUPT`（打断当前耗时任务插队执行）、`INJECT`（工具轮次间隙合并）与 `APPEND`（队尾排队）。
-2. **Context Engine 上下文分级治理**：
-   - **原子闭包保护（Canonical Closure）**：计算 `assistant(tool_calls)` 与 `tool(result)` 的传递闭包，杜绝因历史裁剪破坏配对导致的 API 悬空错误。
-   - **旧工具输出折叠压缩**：历史轮次产生的超长工具输出（如大文件、大规模日志）自动保留首尾折叠压缩，节省 80%+ 的上下文开销。
-   - **BM25 关键词记忆召回**：零外部依赖、支持 CJK 表意字符分词与 Robertson-Spärck-Jones 平滑评分。
-3. **安全沙箱（Execution Sandbox）**：
-   - `DirectExecutor`：子进程执行、超时自动杀进程。
-   - `IsolatedWorkspaceExecutor`：目录越界防御、隔离临时目录与敏感凭据。
-4. **多模型统一接入（LiteLLM Provider）**：
-   - 统一 OpenAI、Anthropic Claude、DeepSeek、Qwen、Ollama 等供应商接口。
-5. **持久化与断点续聊（Session Checkpoints）**：
-   - 会话原子写入与持久化快照恢复，支持中断重启。
 
 ---
 
-## 快速上手
+## 22 个子系统复刻交付清单
 
-### 1. 环境准备
+| 子系统模块 | 核心源码位置 | 交付功能与规格契约 |
+| :--- | :--- | :--- |
+| **Spine 调度引擎** | `src/orangecode/spine/` | Lane/Worker 串行化保证、OriginPools 信号量隔离、INTERRUPT 即时打断与 INJECT 间隙合并。 |
+| **高阶工具生态** | `src/orangecode/agent/tools/` | `ReadFileTool`（带行号切片）、`WriteFileTool`、`EditFileTool`（原子精确替换）、`ListDirTool`、`FindTool`、`GrepTool`、`WebFetchTool`、`WebSearchTool`、`AskUserTool`。 |
+| **Subagent 机制** | `src/orangecode/agent/subagent/` | 限制 15 次迭代的独立子智能体、小时级调用限额保护、彻底切断递归派生杜绝 Fork Bomb。 |
+| **分层上下文治理** | `src/orangecode/context/` | 工具调用双向传递闭包（严防 API 悬空错误）、长文本工具输出自动折叠压缩、整轮退避裁剪。 |
+| **多模型与容灾** | `src/orangecode/providers/` | LiteLLM 统一封装、`classify_error` 结构化分类、`FallbackProvider` 指数退避与跨模型自动降级。 |
+| **KNN 语义路由** | `src/orangecode/routing/` | 基于嵌入向量的余弦相似度最近邻分类，计算净效用收益决定大/小模型动态派发。 |
+| **提示词缓存优化** | `src/orangecode/token_wise/` | 工具签名规范化稳定排序（提升大模型前缀缓存命中率至 100%）。 |
+| **调用成本账本** | `src/orangecode/call_efficiency/` | 精确计算每百万 Token 输入/输出/缓存命中的真实开销与账单结算。 |
+| **操作系统沙箱** | `src/orangecode/sandbox/` | `DirectExecutor`、`IsolatedWorkspaceExecutor`（路径穿透防御）与 `SRTExecutor`（Anthropic SRT 强隔离）。 |
+| **会话存储与验真** | `src/orangecode/session/` | 原子覆写落盘、Markdown 轨迹渲染、带 SHA-256 签名的 JSON 导出信封与离线验真。 |
+| **消息渠道网关** | `src/orangecode/channels/` | 飞书 (Lark) 富文本/卡片解析与 Webhook、企业微信 (WeCom) Markdown 回传与中枢路由。 |
+| **定时任务服务** | `src/orangecode/proactive_engine/` | 标准 5 位 Cron 表达式解析器、后台常驻轮询调度器、`Origin.CRON` 自动注入。 |
+| **长期记忆提炼** | `src/orangecode/memory_engine/` | `episodes.md` 时间化事件流与 `user_profile.md` 用户偏好持久化更新。 |
+| **技能库监视器** | `src/orangecode/memory_engine/` | 本地 `SKILL.md` 技能包 YAML Frontmatter 解析与指令挂载。 |
+| **Evolver 自进化** | `src/orangecode/evolver/` | 候选清单 (CandidateManifest)、进化树 (EvolutionTree)、UCB1 树感知多臂老虎机、成对统计显著性门禁 (StatisticalGate)。 |
+| **跨语言 RPC 总线** | `src/orangecode/tui_rpc/` | 严格遵循 JSON-RPC 2.0 规范的异步 NDJSON 分发器与系统方法集。 |
+| **原生终端 UI 前端** | `ui-tui/` | 基于 Node.js、React、Ink 构建的完整终端界面项目。 |
+| **链路追踪体系** | `src/orangecode/tracing/` | 符合 OpenTelemetry GenAI 标准的 Span 与上下文持续追踪器。 |
+| **生产级 CLI 矩阵** | `src/orangecode/cli/` | `orangecode run`, `chat`, `session`, `cron`, `gateway`, `doctor` 全套子命令。 |
+| **系统体检诊断** | `src/orangecode/cli/commands.py` | `orangecode doctor` 涵盖 Python、Node、Git、磁盘、模型、沙箱的六维健康体检。 |
+| **评测基准套件** | `benchmarks/` | 完整迁移 CodeFlowBench, AppWorld, ClawBench 等评测基准。 |
+| **智能体预设模板** | `src/orangecode/templates/` | 内置 `SOUL.md`, `USER.md`, `TOOLS.md`, `AGENTS.md` 契约规范。 |
 
-本项目使用 [uv](https://github.com/astral-sh/uv) 纳管环境与依赖（要求 Python 3.12+）：
+---
+
+## 快速上手与 CLI 指南
+
+### 1. 环境准备与依赖同步
+
+项目基于 Python 3.12+ 与 `uv` 管理：
 
 ```bash
-# 同步安装所有依赖与开发工具
+cd /home/tide/GoProjects/orangecode
 uv sync --extra dev
 ```
 
-### 2. 命令行体验
+### 2. 常用命令清单
 
-#### 查看版本与配置
+#### 系统健康体检
 ```bash
-uv run orangecode version
+uv run orangecode doctor
 ```
 
-#### 执行单次复杂任务
+#### 启动单次复杂任务
 ```bash
-# 使用默认配置（可配置 ORANGECODE_DEFAULT_MODEL 或传入 --model）
-uv run orangecode run "请读取当前目录下的 pyproject.toml 文件，并总结其依赖项" --session my-task
+uv run orangecode run "检查当前目录下的文件并统计代码行数" --session my-task
 ```
 
-#### 启动交互式多轮对话 (REPL)
+#### 启动终端多轮交互 (REPL)
 ```bash
-uv run orangecode chat --session my-conversation
+uv run orangecode chat --session my-chat
 ```
 
-#### 管理历史会话与检查点
+#### 会话管理与报告导出
 ```bash
 # 查看所有已保存会话
 uv run orangecode session list
 
 # 查看指定会话的完整历史轨迹
-uv run orangecode session show my-conversation
+uv run orangecode session show my-chat
 
-# 删除会话
-uv run orangecode session delete my-conversation
+# 导出带 SHA-256 签名的凭据报告
+uv run orangecode session export my-chat --format md
+uv run orangecode session export my-chat --format json
+```
+
+#### 定时任务与常驻网关
+```bash
+# 添加每天早上 9 点执行的任务
+uv run orangecode cron add "daily_report" "0 9 * * *" "生成昨日项目进度摘要"
+
+# 查看定时作业
+uv run orangecode cron list
+
+# 启动常驻统一网关 (Gateway)
+uv run orangecode gateway start
 ```
 
 ---
 
-## 自动化测试与代码检查
+## 自动化测试与质量保障
 
-运行全量测试套件（21 项测试）：
+全量运行 46 项端到端单元测试：
 ```bash
 uv run pytest
 ```
 
-运行代码静态分析与格式检查：
+运行 Ruff 静态代码分析检查：
 ```bash
 uv run ruff check .
 ```
