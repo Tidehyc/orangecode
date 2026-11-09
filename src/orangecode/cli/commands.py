@@ -225,6 +225,29 @@ def delete_session_cmd(conversation_id: str):
         console.print(f"[yellow]Session '{conversation_id}' does not exist.[/yellow]")
 
 
+@session_app.command("export")
+def export_session_cmd(
+    conversation_id: str,
+    output: Annotated[str | None, typer.Option("--output", "-o", help="导出文件目标路径")] = None,
+    fmt: Annotated[str, typer.Option("--format", "-f", help="导出格式: md 或 json")] = "md",
+):
+    """将会话导出为 Markdown 轨迹文档或带校验和的 JSON 凭证。"""
+    from pathlib import Path
+
+    from orangecode.session.export import export_session_to_file
+
+    mgr = SessionManager()
+    record = mgr.load(conversation_id)
+    if not record:
+        console.print(f"[bold red]Session '{conversation_id}' not found.[/bold red]")
+        return
+
+    ext = ".json" if fmt.lower() == "json" else ".md"
+    dest = Path(output) if output else Path(f"{conversation_id}_export{ext}")
+    saved_path = export_session_to_file(record, dest)
+    console.print(f"[bold green]Successfully exported session to:[/bold green] [cyan]{saved_path}[/cyan]")
+
+
 def run():
     """CLI 执行入口点。"""
     app()
