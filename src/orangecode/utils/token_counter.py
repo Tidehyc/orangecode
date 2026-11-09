@@ -15,7 +15,18 @@ def _message_token_parts(msg: dict[str, Any]) -> list[str]:
 
     content = msg.get("content")
     if content:
-        parts.append(str(content))
+        if isinstance(content, list):
+            for part in content:
+                if isinstance(part, dict):
+                    if part.get("type") == "text":
+                        parts.append(str(part.get("text", "")))
+                    elif part.get("type") == "image_url":
+                        # 图片 token 计入估算占位
+                        parts.append("image_content_placeholder" * 20)
+                else:
+                    parts.append(str(part))
+        else:
+            parts.append(str(content))
 
     tool_calls = msg.get("tool_calls")
     if tool_calls and isinstance(tool_calls, list):

@@ -1,17 +1,21 @@
 """Spine 核心调度器：Lane/Worker 会话隔离、抢占打断与并发控制。"""
 
+from __future__ import annotations
+
 import asyncio
 from collections import deque
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
-from orangecode.agent.loop import AgentLoop, AgentLoopOutcome
 from orangecode.session.manager import SessionManager
 from orangecode.spine.events import TurnEnded, TurnEvent, TurnFailed, TurnStarted, Usage
 from orangecode.spine.pools import OriginPools
 from orangecode.spine.turn import BusyPolicy, TurnHandle, TurnRequest
+
+if TYPE_CHECKING:
+    from orangecode.agent.loop import AgentLoop, AgentLoopOutcome
 
 EventSink = Callable[[TurnEvent], Awaitable[None]]
 
