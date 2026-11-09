@@ -174,3 +174,42 @@ async def test_agent_loop_max_iterations_limit():
     assert not outcome.success
     assert outcome.iterations == 3
     assert outcome.error_message is not None
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_event_sink():
+    events = []
+
+    async def sink(evt):
+        events.append(evt)
+
+    mock_responses = [
+        LLMResponse(
+            content="Adding numbers",
+            tool_calls=[ToolCallRequest(id="call_1", name="add_numbers", arguments={"a": 1, "b": 2})],
+        ),
+        LLMResponse(content="Final sum is 3"),
+    ]
+
+    registry = ToolRegistry()
+    registry.register(AddNumbersTool())
+    agent = AgentLoop(
+        provider=MockProvider(mock_responses),
+        tool_registry=registry,
+        event_sink=sink,
+    )
+
+    outcome = await agent.run("Add 1 and 2")
+    assert outcome.success
+    # 验证捕获到了 ToolEvent (START and COMPLETE) 和 TextDelta
+    assert len(events) >= 3
+    tool_events = [e for e in events if hasattr(e, "tool_name")]
+    assert len(tool_events) == 2
+    assert tool_events[0].phase == "start"
+    assert tool_events[1].phase == "complete"
+    assert tool_events[1].result == "3"
+
+    text_deltas = [e for e in events if hasattr(e, "delta")]
+    assert len(text_deltas) == 1
+    assert text_deltas[0].delta == "Final sum is 3"
+

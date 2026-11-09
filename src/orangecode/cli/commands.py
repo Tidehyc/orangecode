@@ -15,7 +15,13 @@ from orangecode.agent.tools import BashTool, ReadFileTool, ToolRegistry, WriteFi
 from orangecode.config import settings
 from orangecode.providers import LiteLLMProvider
 from orangecode.session.manager import SessionManager
-from orangecode.spine.events import TurnEnded, TurnEvent, TurnStarted
+from orangecode.spine.events import (
+    ToolEvent,
+    ToolPhase,
+    TurnEnded,
+    TurnEvent,
+    TurnStarted,
+)
 from orangecode.spine.scheduler import SpineScheduler
 from orangecode.spine.turn import TurnRequest
 
@@ -134,7 +140,17 @@ def run_agent_cmd(
     def agent_factory(cid: str) -> AgentLoop:
         return AgentLoop(provider=provider, tool_registry=registry)
 
-    scheduler = SpineScheduler(agent_factory=agent_factory)
+    async def on_run_event(evt: TurnEvent):
+        if isinstance(evt, ToolEvent):
+            if evt.phase == ToolPhase.START:
+                console.print(f"[cyan]⚡ Executing tool: [bold]{evt.tool_name}[/bold] {evt.arguments or ''}[/cyan]")
+            elif evt.phase == ToolPhase.COMPLETE:
+                if evt.failed:
+                    console.print(f"[red]✗ Tool '{evt.tool_name}' failed:[/red] {evt.result}")
+                else:
+                    console.print(f"[green]✓ Tool '{evt.tool_name}' completed[/green]")
+
+    scheduler = SpineScheduler(agent_factory=agent_factory, event_sink=on_run_event)
 
     async def _execute():
         with console.status("[bold green]Agent thinking and executing tools via Spine..."):
@@ -183,6 +199,14 @@ def chat_cmd(
     async def on_event(evt: TurnEvent):
         if isinstance(evt, TurnStarted):
             console.print(f"[dim]Turn started: {evt.turn_id}[/dim]")
+        elif isinstance(evt, ToolEvent):
+            if evt.phase == ToolPhase.START:
+                console.print(f"[cyan]⚡ Tool: [bold]{evt.tool_name}[/bold][/cyan]")
+            elif evt.phase == ToolPhase.COMPLETE:
+                if evt.failed:
+                    console.print(f"[red]✗ Tool '{evt.tool_name}' failed[/red]")
+                else:
+                    console.print(f"[green]✓ Tool '{evt.tool_name}' done[/green]")
         elif isinstance(evt, TurnEnded):
             console.print(f"[dim]Turn finished (tokens: {evt.usage.total_tokens})[/dim]")
 

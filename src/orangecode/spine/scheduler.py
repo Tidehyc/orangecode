@@ -104,6 +104,8 @@ class Lane:
                 )
 
                 agent = self.agent_factory(self.conversation_id)
+                if hasattr(agent, "event_sink") and agent.event_sink is None:
+                    agent.event_sink = self.event_sink
 
                 # 将当前任务作为独立 Task 执行，便于接收 cancel()
                 loop = asyncio.get_running_loop()

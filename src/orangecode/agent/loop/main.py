@@ -1,5 +1,8 @@
 """Agent Loop: 多轮思考与工具执行状态机。"""
 
+from __future__ import annotations
+
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -8,6 +11,7 @@ from loguru import logger
 from orangecode.agent.tools.base import ToolRegistry
 from orangecode.context.assembler import ContextAssembler
 from orangecode.providers.base import LLMProvider, TokenUsage
+from orangecode.spine.events import TextDelta, ToolEvent, ToolPhase, TurnEvent
 
 
 @dataclass
@@ -31,6 +35,7 @@ class AgentLoop:
         tool_registry: ToolRegistry | None = None,
         context_assembler: ContextAssembler | None = None,
         default_system_prompt: str | None = None,
+        event_sink: Callable[[TurnEvent], Awaitable[None]] | None = None,
     ) -> None:
         self.provider = provider
         self.tool_registry = tool_registry or ToolRegistry()
@@ -39,6 +44,7 @@ class AgentLoop:
             default_system_prompt
             or "You are OrangeCode, a helpful and precise agent assistant."
         )
+        self.event_sink = event_sink
 
     async def run(
         self,
@@ -103,7 +109,27 @@ class AgentLoop:
                 # 执行工具调用并记录观察结果
                 for tc in response.tool_calls:
                     logger.debug(f"Executing tool {tc.name} (call_id: {tc.id})")
+                    if self.event_sink:
+                        await self.event_sink(
+                            ToolEvent(
+                                tool_name=tc.name,
+                                phase=ToolPhase.START,
+                                arguments=tc.arguments,
+                            )
+                        )
+
                     result = await self.tool_registry.execute(tc.name, tc.arguments)
+
+                    if self.event_sink:
+                        await self.event_sink(
+                            ToolEvent(
+                                tool_name=tc.name,
+                                phase=ToolPhase.COMPLETE,
+                                arguments=tc.arguments,
+                                result=str(result),
+                                failed=getattr(result, "failed", False),
+                            )
+                        )
 
                     tool_msg = {
                         "role": "tool",
@@ -118,6 +144,9 @@ class AgentLoop:
 
             # 情况 B: 模型已输出最终文本，没有进一步工具调用需求
             final_text = response.content or ""
+            if self.event_sink and final_text:
+                await self.event_sink(TextDelta(delta=final_text))
+
             messages.append({"role": "assistant", "content": final_text})
             logger.info(f"Agent Loop completed successfully in {iteration} iteration(s).")
             return AgentLoopOutcome(
