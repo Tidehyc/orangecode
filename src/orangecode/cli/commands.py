@@ -26,7 +26,12 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 session_app = typer.Typer(name="session", help="会话持久化与检查点管理", no_args_is_help=True)
+cron_app = typer.Typer(name="cron", help="定时任务调度管理", no_args_is_help=True)
+gateway_app = typer.Typer(name="gateway", help="常驻后台网关管理", no_args_is_help=True)
+
 app.add_typer(session_app, name="session")
+app.add_typer(cron_app, name="cron")
+app.add_typer(gateway_app, name="gateway")
 
 console = Console()
 
@@ -246,6 +251,119 @@ def export_session_cmd(
     dest = Path(output) if output else Path(f"{conversation_id}_export{ext}")
     saved_path = export_session_to_file(record, dest)
     console.print(f"[bold green]Successfully exported session to:[/bold green] [cyan]{saved_path}[/cyan]")
+
+
+# ----------------------------------------------------------------------
+# Cron 子命令集合
+# ----------------------------------------------------------------------
+
+
+@cron_app.command("list")
+def list_cron_cmd():
+    """列出所有已配置的定时任务。"""
+    from datetime import datetime
+
+    from orangecode.proactive_engine.cron import CronService
+
+    svc = CronService()
+    jobs = svc.list_jobs()
+    if not jobs:
+        console.print("[dim]No cron jobs found.[/dim]")
+        return
+
+    table = Table(title="OrangeCode Scheduled Cron Jobs")
+    table.add_column("Job ID", style="cyan", no_wrap=True)
+    table.add_column("Name", style="bold")
+    table.add_column("Cron Expression", style="yellow")
+    table.add_column("Next Run", style="green")
+    table.add_column("Prompt", style="dim")
+
+    for j in jobs:
+        next_str = datetime.fromtimestamp(j.next_run_at).strftime("%Y-%m-%d %H:%M:%S") if j.next_run_at else "-"
+        table.add_row(j.job_id, j.name, j.cron_expr, next_str, j.prompt[:40] + ("..." if len(j.prompt) > 40 else ""))
+    console.print(table)
+
+
+@cron_app.command("add")
+def add_cron_cmd(
+    name: Annotated[str, typer.Argument(help="任务名称")],
+    cron_expr: Annotated[str, typer.Argument(help="5 位标准 Cron 表达式 (如 '0 9 * * *')")],
+    prompt: Annotated[str, typer.Argument(help="到期触发时执行的提示词")],
+):
+    """添加一个新的定时调度作业。"""
+    from orangecode.proactive_engine.cron import CronService
+
+    svc = CronService()
+    try:
+        job = svc.add_job(name=name, cron_expr=cron_expr, prompt=prompt)
+        console.print(f"[bold green]Cron job successfully created:[/bold green] [cyan]{job.job_id}[/cyan]")
+    except Exception as e:
+        console.print(f"[bold red]Failed to add cron job:[/bold red] {e}")
+
+
+@cron_app.command("remove")
+def remove_cron_cmd(job_id: str):
+    """移除指定定时作业。"""
+    from orangecode.proactive_engine.cron import CronService
+
+    svc = CronService()
+    if svc.remove_job(job_id):
+        console.print(f"[green]Cron job '{job_id}' removed.[/green]")
+    else:
+        console.print(f"[yellow]Cron job '{job_id}' not found.[/yellow]")
+
+
+# ----------------------------------------------------------------------
+# Gateway 后台常驻网关服务
+# ----------------------------------------------------------------------
+
+
+@gateway_app.command("start")
+def start_gateway_cmd(
+    model: Annotated[str | None, typer.Option("--model", "-m", help="指定主模型")] = None,
+):
+    """启动常驻后台 Gateway：集成 Spine 调度总线、Cron 定时引擎与多平台消息中枢。"""
+    from orangecode.agent.tools import BashTool, ReadFileTool, ToolRegistry, WriteFileTool
+    from orangecode.channels import ChannelManager, FeishuChannel, WeComChannel
+    from orangecode.proactive_engine.cron import CronService
+
+    chosen_model = model or settings.default_model
+    console.print(Panel(f"[bold green]OrangeCode Unified Gateway Daemon[/bold green]\nModel: [yellow]{chosen_model}[/yellow]\nPress Ctrl+C to terminate.", border_style="cyan"))
+
+    provider = LiteLLMProvider(model_name=chosen_model)
+    registry = ToolRegistry()
+    registry.register(ReadFileTool())
+    registry.register(WriteFileTool())
+    registry.register(BashTool())
+
+    channel_mgr: ChannelManager | None = None
+
+    async def gateway_event_sink(evt: TurnEvent):
+        if channel_mgr:
+            await channel_mgr.on_spine_event(evt)
+
+    scheduler = SpineScheduler(
+        agent_factory=lambda cid: AgentLoop(provider=provider, tool_registry=registry),
+        event_sink=gateway_event_sink,
+    )
+
+    channel_mgr = ChannelManager(scheduler=scheduler)
+    channel_mgr.register_channel(FeishuChannel())
+    channel_mgr.register_channel(WeComChannel())
+
+    cron_svc = CronService()
+
+    async def _main_loop():
+        try:
+            await cron_svc.start(scheduler=scheduler, check_interval=1.0)
+        except asyncio.CancelledError:
+            cron_svc.stop()
+            await scheduler.shutdown()
+
+    try:
+        asyncio.run(_main_loop())
+    except KeyboardInterrupt:
+        console.print("\n[dim]Gateway daemon stopped gracefully.[/dim]")
 
 
 def run():
