@@ -6,6 +6,7 @@ from typing import Any
 from loguru import logger
 
 from orangecode.agent.tools.base import ToolRegistry
+from orangecode.context.assembler import ContextAssembler
 from orangecode.providers.base import LLMProvider, TokenUsage
 
 
@@ -28,10 +29,12 @@ class AgentLoop:
         self,
         provider: LLMProvider,
         tool_registry: ToolRegistry | None = None,
+        context_assembler: ContextAssembler | None = None,
         default_system_prompt: str | None = None,
     ) -> None:
         self.provider = provider
         self.tool_registry = tool_registry or ToolRegistry()
+        self.assembler = context_assembler or ContextAssembler()
         self.default_system_prompt = (
             default_system_prompt
             or "You are OrangeCode, a helpful and precise agent assistant."
@@ -42,24 +45,26 @@ class AgentLoop:
         prompt: str,
         system_prompt: str | None = None,
         history: list[dict[str, Any]] | None = None,
+        memories: list[str] | None = None,
         max_iterations: int = 20,
     ) -> AgentLoopOutcome:
         """启动 Agent 执行循环，直到生成最终回复或达到最大迭代轮次。"""
-        # 1. 组装初始消息
-        messages: list[dict[str, Any]] = []
-
-        active_system_prompt = system_prompt or self.default_system_prompt
-        if active_system_prompt:
-            messages.append({"role": "system", "content": active_system_prompt})
-
-        if history:
-            messages.extend(history)
-
-        messages.append({"role": "user", "content": prompt})
-
-        # 2. 准备工具 Schema
+        # 1. 准备工具 Schema
         tools_schema = self.tool_registry.list_schemas()
         tools_param = tools_schema if tools_schema else None
+
+        # 2. 上下文治理装配（Token 预算核算、工具输出压缩、历史原子裁剪）
+        active_system_prompt = system_prompt or self.default_system_prompt
+        messages, trim_outcome = self.assembler.assemble(
+            system_prompt=active_system_prompt,
+            history=history or [],
+            current_prompt=prompt,
+            memories=memories,
+            tools=tools_param,
+        )
+
+        if trim_outcome.warnings:
+            logger.info(f"Context governance applied: {trim_outcome.warnings}")
 
         total_usage = TokenUsage()
         iteration = 0
