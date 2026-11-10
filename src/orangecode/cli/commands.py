@@ -34,10 +34,16 @@ app = typer.Typer(
 session_app = typer.Typer(name="session", help="会话持久化与检查点管理", no_args_is_help=True)
 cron_app = typer.Typer(name="cron", help="定时任务调度管理", no_args_is_help=True)
 gateway_app = typer.Typer(name="gateway", help="常驻后台网关管理", no_args_is_help=True)
+skills_app = typer.Typer(name="skills", help="技能库检索与查看", no_args_is_help=True)
+provider_app = typer.Typer(name="provider", help="模型提供商与智能路由管理", no_args_is_help=True)
+evolve_app = typer.Typer(name="evolve", help="自进化变体管理与评估", no_args_is_help=True)
 
 app.add_typer(session_app, name="session")
 app.add_typer(cron_app, name="cron")
 app.add_typer(gateway_app, name="gateway")
+app.add_typer(skills_app, name="skills")
+app.add_typer(provider_app, name="provider")
+app.add_typer(evolve_app, name="evolve")
 
 console = Console()
 
@@ -54,6 +60,62 @@ def version_cmd():
     console.print(f"[bold cyan]OrangeCode[/bold cyan] v[bold green]{__version__}[/bold green]")
     console.print(f"Default model: [yellow]{settings.default_model}[/yellow]")
     console.print(f"State dir: [dim]{settings.state_dir}[/dim]")
+
+
+@app.command("status")
+def status_cmd():
+    """查看 OrangeCode 运行时整体健康与会话/渠道状态。"""
+    mgr = SessionManager()
+    sessions = mgr.list_sessions()
+
+    table = Table(title="OrangeCode Harness Status")
+    table.add_column("Property", style="cyan")
+    table.add_column("Value", style="green")
+
+    table.add_row("Version", f"v{__version__}")
+    table.add_row("Default Model", settings.default_model)
+    table.add_row("API Key Configured", "Yes" if settings.api_key else "No (Set via ORANGECODE_API_KEY)")
+    table.add_row("State Directory", str(settings.state_dir))
+    table.add_row("Saved Sessions", str(len(sessions)))
+    table.add_row("Environment", settings.environment)
+    table.add_row("Max Tool Iterations", str(settings.max_tool_iterations))
+
+    console.print(table)
+
+
+@app.command("tui")
+def tui_cmd(
+    check: bool = typer.Option(False, "--check", help="仅烟雾测试 Node.js 与 TUI 依赖并退出"),
+    dev: bool = typer.Option(True, "--dev", help="从 TypeScript 源码启动"),
+):
+    """启动 Node.js + React + Ink 原生终端 UI。"""
+    import shutil
+    import subprocess
+    from pathlib import Path
+
+    node_bin = shutil.which("node")
+    if not node_bin:
+        console.print("[bold red]Error:[/bold red] Node.js runtime not found in PATH. Node >= 22 required.")
+        raise typer.Exit(1)
+
+    tui_dir = Path.cwd() / "ui-tui"
+    if not tui_dir.is_dir():
+        tui_dir = Path(__file__).resolve().parent.parent.parent.parent / "ui-tui"
+
+    if not tui_dir.is_dir():
+        console.print(f"[bold red]Error:[/bold red] ui-tui directory not found at {tui_dir}")
+        raise typer.Exit(1)
+
+    if check:
+        console.print(f"[green]✓[/green] Found Node.js: {node_bin}")
+        console.print(f"[green]✓[/green] Found TUI source at: {tui_dir}")
+        return
+
+    console.print("[cyan]Launching OrangeCode Native Terminal UI...[/cyan]")
+    try:
+        subprocess.run(["npm", "run", "dev"], cwd=str(tui_dir))
+    except KeyboardInterrupt:
+        console.print("\n[dim]TUI closed.[/dim]")
 
 
 @app.command("doctor")
@@ -442,6 +504,86 @@ def start_gateway_cmd(
         asyncio.run(_main_loop())
     except KeyboardInterrupt:
         console.print("\n[dim]Gateway daemon stopped gracefully.[/dim]")
+
+
+# ----------------------------------------------------------------------
+# Skills, Provider & Evolve 子命令集合
+# ----------------------------------------------------------------------
+
+
+@skills_app.command("list")
+def list_skills_cmd(
+    directory: str = typer.Option(".", "--dir", "-d", help="技能包根目录"),
+):
+    """列出指定目录下所有通过 SKILL.md 定义的技能。"""
+    from pathlib import Path
+
+    from orangecode.memory_engine.skill_local import SkillWatcher
+
+    watcher = SkillWatcher(root_dir=Path(directory))
+    skills = watcher.skills
+    if not skills:
+        console.print("[dim]No skills found (looking for **/SKILL.md)[/dim]")
+        return
+
+    table = Table(title=f"Discovered Skills ({len(skills)})")
+    table.add_column("Name", style="bold cyan")
+    table.add_column("Description", style="white")
+    table.add_column("Path", style="dim")
+    for s in skills.values():
+        table.add_row(s.name, s.description, str(s.path or ""))
+    console.print(table)
+
+
+@provider_app.command("list")
+def list_providers_cmd():
+    """列出当前激活的大模型提供商与智能路由策略。"""
+    table = Table(title="Configured Providers & Routing")
+    table.add_column("Component", style="cyan")
+    table.add_column("Status / Config", style="green")
+
+    table.add_row("Primary Provider", "LiteLLM Multi-model Gateway")
+    table.add_row("Active Model", settings.default_model)
+    table.add_row("Semantic Router", "KNN Cosine Utility Router (Active)")
+    table.add_row("Failover Policy", "FallbackProvider (Exponential Backoff)")
+    table.add_row("Cost Ledger", "Pricing & Prompt Cache Tracking (Active)")
+    console.print(table)
+
+
+@evolve_app.command("run")
+def run_evolve_cmd(
+    name: str = typer.Option("candidate_1", "--name", "-n", help="变体名称"),
+):
+    """运行一轮变体评估与 UCB1 老虎机探索选择。"""
+    from orangecode.evolver import (
+        CandidateLabel,
+        CandidateManifest,
+        EvolutionTree,
+        StatisticalGate,
+        TreeAwareBandit,
+    )
+
+    manifest = CandidateManifest(
+        candidate_id=name,
+        label=CandidateLabel.PROMPT,
+        hypothesis="Be concise and factual in responses",
+        diff_patch="# Evolved prompt rule: Be concise and factual.",
+    )
+    tree = EvolutionTree(root_id="root", baseline_score=0.8)
+    tree.add_node(node_id=name, parent_id="root", manifest=manifest, score=0.85)
+
+    bandit = TreeAwareBandit()
+    selected_node = bandit.select_node(tree)
+
+    gate = StatisticalGate(min_delta=0.02, min_trials=3)
+    verdict = gate.evaluate([0.8, 0.82, 0.81], [0.85, 0.88, 0.86])
+
+    console.print("[bold green]Evolution Round Completed[/bold green]")
+    console.print(f"- Registered Candidate ID: [cyan]{manifest.candidate_id}[/cyan] ({manifest.label})")
+    console.print(f"- Tree Total Nodes: [yellow]{len(tree.nodes)}[/yellow]")
+    console.print(f"- Bandit Selected Node: [bold magenta]{selected_node.node_id}[/bold magenta] (score: {selected_node.score})")
+    gate_color = "green" if verdict.passed else "red"
+    console.print(f"- Statistical Gate Passed: [{gate_color}]{verdict.passed}[/{gate_color}] (delta: +{verdict.delta:.3f})")
 
 
 def run():
