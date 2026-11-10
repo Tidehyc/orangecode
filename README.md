@@ -5,7 +5,7 @@
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-Apache--2.0-0B7285)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-46%20passed-brightgreen)](tests)
+[![Tests](https://img.shields.io/badge/tests-79%20passed-brightgreen)](tests)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 ---
@@ -74,8 +74,13 @@ flowchart TD
 | **长期记忆提炼** | `src/orangecode/memory_engine/` | `episodes.md` 时间化事件流与 `user_profile.md` 用户偏好持久化更新。 |
 | **技能库监视器** | `src/orangecode/memory_engine/` | 本地 `SKILL.md` 技能包 YAML Frontmatter 解析与指令挂载。 |
 | **Evolver 自进化** | `src/orangecode/evolver/` | 候选清单 (CandidateManifest)、进化树 (EvolutionTree)、UCB1 树感知多臂老虎机、成对统计显著性门禁 (StatisticalGate)。 |
-| **跨语言 RPC 总线** | `src/orangecode/tui_rpc/` | 严格遵循 JSON-RPC 2.0 规范的异步 NDJSON 分发器与系统方法集。 |
+| **跨语言 RPC 总线** | `src/orangecode/tui_rpc/` | 严格遵循 JSON-RPC 2.0 规范的异步 NDJSON 分发器、ConfirmBroker 倒计时确认与 QuestionBroker 澄清代理。 |
 | **原生终端 UI 前端** | `ui-tui/` | 基于 Node.js、React、Ink 构建的完整终端界面项目。 |
+| **网络与注入防御** | `src/orangecode/security/` | `validate_url_target` 全面防范 SSRF 私网穿透，`wrap_untrusted` 密码学 Nonce 数据栅栏严防 Prompt 注入。 |
+| **授权与权能令牌** | `src/orangecode/auth/` | Deny-by-default 发件人白名单控制、HMAC-SHA256 防篡改带过期时间戳的 Agent 权能令牌 (`CapabilityToken`)。 |
+| **模块化插件系统** | `src/orangecode/plugin/` | `orangecode-plugin.toml` 清单规范模型、目录递归扫描、动态贡献点 Tool 自动实例化装配。 |
+| **自动化评测与裁判** | `src/orangecode/eval_engine/` | Agent 生命周期审计钩子 (`ToolAuditHook`)、LLM-as-a-Judge 结构化质量打分裁决 (`EvalJudge`)。 |
+| **多模态与媒体管理** | `src/orangecode/spine/message.py` | Magic Bytes 快速识别常见图片格式、SHA-256 安全隔离落盘与 OpenAI/LiteLLM 规范的多模态消息构造。 |
 | **链路追踪体系** | `src/orangecode/tracing/` | 符合 OpenTelemetry GenAI 标准的 Span 与上下文持续追踪器。 |
 | **生产级 CLI 矩阵** | `src/orangecode/cli/` | `orangecode run`, `chat`, `session`, `cron`, `gateway`, `doctor` 全套子命令。 |
 | **系统体检诊断** | `src/orangecode/cli/commands.py` | `orangecode doctor` 涵盖 Python、Node、Git、磁盘、模型、沙箱的六维健康体检。 |
