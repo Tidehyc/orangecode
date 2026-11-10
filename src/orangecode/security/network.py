@@ -48,7 +48,7 @@ def validate_url_target(url: str) -> tuple[bool, str]:
     try:
         direct_ip = ipaddress.ip_address(hostname)
         if _is_private_or_loopback(direct_ip):
-            return False, f"Access to private/loopback IP {direct_ip} is blocked for security"
+            return False, f"Access to private/internal IP {direct_ip} is blocked for security"
         return True, ""
     except ValueError:
         pass
@@ -69,7 +69,7 @@ def validate_url_target(url: str) -> tuple[bool, str]:
         try:
             addr = ipaddress.ip_address(ip_str)
             if _is_private_or_loopback(addr):
-                return False, f"Hostname '{hostname}' resolved to blocked private address {ip_str}"
+                return False, f"Hostname '{hostname}' resolved to blocked private/internal address {ip_str}"
         except ValueError:
             return False, f"Invalid resolved IP address: {ip_str}"
 

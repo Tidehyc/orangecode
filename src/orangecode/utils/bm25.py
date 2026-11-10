@@ -17,14 +17,14 @@ class BM25Okapi:
 
     def __init__(
         self,
-        corpus: list[str],
+        corpus: list[list[str]] | list[str],
         k1: float = 1.5,
         b: float = 0.75,
     ) -> None:
         self.k1 = k1
         self.b = b
         self.corpus_size = len(corpus)
-        tokenized_corpus = [tokenize(doc) for doc in corpus]
+        tokenized_corpus = [tokenize(doc) if isinstance(doc, str) else list(doc) for doc in corpus]
         self.doc_lens = [len(d) for d in tokenized_corpus]
         self.avgdl = sum(self.doc_lens) / self.corpus_size if self.corpus_size else 0.0
 
@@ -45,9 +45,9 @@ class BM25Okapi:
             for term, count in df.items()
         }
 
-    def get_scores(self, query: str) -> list[float]:
+    def get_scores(self, query: str | list[str]) -> list[float]:
         """计算给定 Query 对语料库中所有文档的相关度得分。"""
-        query_tokens = tokenize(query)
+        query_tokens = tokenize(query) if isinstance(query, str) else list(query)
         scores = [0.0] * self.corpus_size
         if not query_tokens or self.corpus_size == 0:
             return scores

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -10,7 +11,7 @@ from loguru import logger
 
 from orangecode.agent.tools.base import ToolRegistry
 from orangecode.context.assembler import ContextAssembler
-from orangecode.providers.base import LLMProvider, TokenUsage
+from orangecode.providers.base import LLMProvider, TokenUsage, ToolCallRequest
 from orangecode.spine.events import TextDelta, ToolEvent, ToolPhase, TurnEvent
 
 
@@ -45,6 +46,85 @@ class AgentLoop:
             or "You are OrangeCode, a helpful and precise agent assistant."
         )
         self.event_sink = event_sink
+
+    async def _execute_single_tool(self, tc: ToolCallRequest) -> dict[str, Any]:
+        """执行单个工具调用并在任务取消时清理残留。"""
+        logger.debug(f"Executing tool {tc.name} (call_id: {tc.id})")
+        if self.event_sink:
+            await self.event_sink(
+                ToolEvent(
+                    tool_name=tc.name,
+                    phase=ToolPhase.START,
+                    arguments=tc.arguments,
+                )
+            )
+
+        try:
+            result = await self.tool_registry.execute(tc.name, tc.arguments)
+        except asyncio.CancelledError:
+            logger.warning(f"In-flight tool execution '{tc.name}' was cancelled.")
+            raise
+
+        if self.event_sink:
+            await self.event_sink(
+                ToolEvent(
+                    tool_name=tc.name,
+                    phase=ToolPhase.COMPLETE,
+                    arguments=tc.arguments,
+                    result=str(result),
+                    failed=getattr(result, "failed", False),
+                )
+            )
+
+        return {
+            "role": "tool",
+            "tool_call_id": tc.id,
+            "name": tc.name,
+            "content": str(result),
+        }
+
+    async def _dispatch_tool_calls(self, tool_calls: list[ToolCallRequest]) -> list[dict[str, Any]]:
+        """根据工具元能力声明，并发执行安全的只读操作，串行化写入操作，避免写冲突。"""
+        if not tool_calls:
+            return []
+
+        def _is_safe(tc: ToolCallRequest) -> bool:
+            tool_inst = self.tool_registry.get(tc.name)
+            if not tool_inst:
+                return False
+            cap = getattr(tool_inst, "capability", None)
+            return bool(getattr(cap, "concurrency_safe", False))
+
+        # 将连续的并发安全工具切分为 batch，非安全工具作为单个任务串行执行
+        results: list[dict[str, Any]] = []
+        i = 0
+        n = len(tool_calls)
+
+        while i < n:
+            tc = tool_calls[i]
+            if _is_safe(tc):
+                # 寻找连续的安全只读工具集合
+                safe_batch = [tc]
+                j = i + 1
+                while j < n and _is_safe(tool_calls[j]):
+                    safe_batch.append(tool_calls[j])
+                    j += 1
+
+                if len(safe_batch) > 1:
+                    logger.info(f"Concurrent execution of {len(safe_batch)} safe read tools")
+                    batch_res = await asyncio.gather(*[self._execute_single_tool(item) for item in safe_batch])
+                    results.extend(batch_res)
+                else:
+                    res = await self._execute_single_tool(tc)
+                    results.append(res)
+                i = j
+            else:
+                # 非安全或写操作串行执行
+                res = await self._execute_single_tool(tc)
+                results.append(res)
+                i += 1
+
+        return results
 
     async def run(
         self,
@@ -106,38 +186,9 @@ class AgentLoop:
                 }
                 messages.append(assistant_msg)
 
-                # 执行工具调用并记录观察结果
-                for tc in response.tool_calls:
-                    logger.debug(f"Executing tool {tc.name} (call_id: {tc.id})")
-                    if self.event_sink:
-                        await self.event_sink(
-                            ToolEvent(
-                                tool_name=tc.name,
-                                phase=ToolPhase.START,
-                                arguments=tc.arguments,
-                            )
-                        )
-
-                    result = await self.tool_registry.execute(tc.name, tc.arguments)
-
-                    if self.event_sink:
-                        await self.event_sink(
-                            ToolEvent(
-                                tool_name=tc.name,
-                                phase=ToolPhase.COMPLETE,
-                                arguments=tc.arguments,
-                                result=str(result),
-                                failed=getattr(result, "failed", False),
-                            )
-                        )
-
-                    tool_msg = {
-                        "role": "tool",
-                        "tool_call_id": tc.id,
-                        "name": tc.name,
-                        "content": str(result),
-                    }
-                    messages.append(tool_msg)
+                # 执行工具调用：根据读写安全性并发执行只读安全工具，串行化写入工具
+                tool_messages = await self._dispatch_tool_calls(response.tool_calls)
+                messages.extend(tool_messages)
 
                 # 继续下一轮循环，将工具结果喂给模型
                 continue
