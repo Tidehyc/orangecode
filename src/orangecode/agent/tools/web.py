@@ -7,6 +7,8 @@ import httpx
 
 from orangecode.agent.tools.base import Tool, ToolResult
 from orangecode.agent.tools.execution import ToolCapability, ToolEffect
+from orangecode.security.network import validate_url_target
+from orangecode.security.trust import wrap_untrusted
 
 
 class WebFetchTool(Tool):
@@ -46,8 +48,9 @@ class WebFetchTool(Tool):
         return clean.strip()
 
     async def execute(self, url: str, max_chars: int = 8000, **kwargs: Any) -> ToolResult:
-        if not url.startswith(("http://", "https://")):
-            return ToolResult(f"Error: Invalid URL scheme in '{url}'. Must start with http:// or https://.", failed=True)
+        is_safe, error_msg = validate_url_target(url)
+        if not is_safe:
+            return ToolResult(f"Security error: Blocked unsafe URL '{url}': {error_msg}", failed=True)
 
         headers = {
             "User-Agent": "Mozilla/5.0 (compatible; OrangeCodeAgent/0.1; +https://github.com/orangecode)"
@@ -66,7 +69,8 @@ class WebFetchTool(Tool):
                 if len(text) > max_chars:
                     text = text[:max_chars] + f"\n\n[... Truncated at {max_chars} characters ...]"
 
-                return ToolResult(f"Content from {url}:\n\n{text}", failed=False)
+                fenced_text = wrap_untrusted(text, source=f"web:{url}")
+                return ToolResult(f"Content from {url}:\n\n{fenced_text}", failed=False)
         except httpx.HTTPStatusError as e:
             return ToolResult(f"HTTP error {e.response.status_code} fetching '{url}'.", failed=True)
         except Exception as e:
