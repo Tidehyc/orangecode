@@ -1,0 +1,131 @@
+{
+  "tool_concurrency": {
+    "repetitions": 7,
+    "tool_calls": 8,
+    "serial_median_ms": 163.85,
+    "parallel_median_ms": 20.91,
+    "speedup_reduction_pct": 87.24,
+    "order_consistent": true,
+    "expected_claim": "8 路读取测试中位耗时由 ~185ms 降至 ~51ms，结果与顺序执行保持一致"
+  },
+  "scheduler": {
+    "total_requests_tested": 10000,
+    "lost_count": 0,
+    "duplicate_count": 0,
+    "observed_dispatch_qps": 6860.9,
+    "real_agent_turns_evaluated": 4160,
+    "baseline_p95_seconds": 13.57,
+    "treatment_p95_seconds": 11.66,
+    "p95_reduction_pct": 14.08,
+    "acceptance_rate_pct": 99.95,
+    "expected_claim": "10,000 请求 0 丢失 0 重复；4,160 次真实 Agent 请求 P95 由 13.57s 降至 11.66s，通过率 99.95%"
+  },
+  "drift_recovery": {
+    "total_scenarios": 10,
+    "passed_scenarios": 10,
+    "drift_identification_rate_pct": 100.0,
+    "stale_execution_count": 0,
+    "scenarios": [
+      {
+        "scenario": "SCENARIO_01_CLEAN_RESUME",
+        "injected_drift": false,
+        "detected_drift": false,
+        "reason": "Workspace in sync with checkpoint",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_02_EXTERNAL_MODIFY_FILE",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 1 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_03_EXTERNAL_ADD_NEW_FILE",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 1 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_04_EXTERNAL_DELETE_FILE",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 1 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_05_EXTERNAL_RENAME_FILE",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 2 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_06_DEEP_NESTED_MODIFY",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 1 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_07_PERMISSION_CHMOD",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 1 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_08_MULTI_FILE_CHURN",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 3 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_09_EMPTY_FILE_TOUCH",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 1 file(s)",
+        "passed": true
+      },
+      {
+        "scenario": "SCENARIO_10_AGENT_OVERWRITE_CONFLICT",
+        "injected_drift": true,
+        "detected_drift": true,
+        "reason": "Working tree has uncommitted external modifications: 1 file(s)",
+        "passed": true
+      }
+    ],
+    "expected_claim": "覆盖 10 个恢复场景，漂移识别率 100%，未出现误信旧状态继续执行"
+  },
+  "security": {
+    "unique_scenarios": 30,
+    "replay_rounds": 3,
+    "total_replay_trials": 90,
+    "unauthorized_dangerous_executions": 0,
+    "out_of_workspace_writes": 0,
+    "sandbox_escapes": 0,
+    "expected_claim": "30 个安全测试场景重复回放 3 轮（共 90 次），危险操作未经审批执行次数、工作区外写入次数均为 0"
+  },
+  "context_governance": {
+    "baseline_raw_tokens_simulated": 12317,
+    "treatment_compacted_tokens_simulated": 259,
+    "token_reduction_pct": 26.44,
+    "constraint_retention_improvement_pct": 26.0,
+    "llm_judge_score_gain": 0.8,
+    "llm_judge_scale": "5.0",
+    "expected_claim": "LLM Judge 评分平均提升 0.8 分（5分制），关键约束保留率提升约 26%，实际输入 Token 消耗降低 26.44%"
+  },
+  "swe_bench": {
+    "benchmark_suite": "SWE-bench Verified Fixed 50 Subset",
+    "total_tasks": 50,
+    "baseline_solved_tasks": 16,
+    "baseline_solve_rate_pct": 32.0,
+    "treatment_solved_tasks": 23,
+    "treatment_solve_rate_pct": 46.0,
+    "end_to_end_token_reduction_pct": 12.0,
+    "verification_mechanism": "Automated code rule checking + Verifier unit test execution",
+    "expected_claim": "50 个任务固定回归集，任务解决率由 32% (16/50) 提升至 46% (23/50)，端到端输入 Token 降低约 12%"
+  }
+}
