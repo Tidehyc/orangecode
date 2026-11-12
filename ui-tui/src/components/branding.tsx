@@ -122,7 +122,7 @@ export function Branding({ maxCols, t }: { maxCols?: number; t?: Theme } = {}) {
   const theme = t ?? DEFAULT_THEME
   const stdoutCols = useStdout().stdout?.columns ?? 100
   const cols = maxCols ?? stdoutCols
-  const showWordmark = Boolean(theme.bannerLogo) || cols >= ORANGECODE_WORD_WIDTH + 2
+  const showWordmark = Boolean(theme.bannerLogo) || cols >= ORANGECODE_WORD_WIDTH + 4
   const logoLines = theme.bannerLogo ? parseRichMarkup(theme.bannerLogo) : orangeCodeLogoWord(theme.yellow)
 
   return (
@@ -131,7 +131,7 @@ export function Branding({ maxCols, t }: { maxCols?: number; t?: Theme } = {}) {
       <Box>
         <Text color={theme.color.accent}>{theme.brand.icon} </Text>
         <Text bold color={theme.color.primary}>
-          Orange
+          OrangeCode
         </Text>
         <Text color={theme.color.muted}> · agent harness</Text>
       </Box>

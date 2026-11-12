@@ -16,15 +16,14 @@ describe('Branding', () => {
     expect(() => render(<Branding />)).not.toThrow()
   })
 
-  it('keeps Banner branding to Orange without Code suffix', () => {
+  it('renders OrangeCode branding in wide mode and hides wordmark cleanly in narrow mode', () => {
     const wide = render(<Branding maxCols={80} t={DEFAULT_THEME} />).lastFrame() ?? ''
     const narrow = render(<Branding maxCols={28} t={DEFAULT_THEME} />).lastFrame() ?? ''
 
     expect(wide).toContain('▄███▄')
-    expect(wide).toContain('Orange')
-    expect(wide).not.toContain('OrangeCode')
-    expect(narrow).toContain('Orange')
-    expect(narrow).not.toContain('OrangeCode')
+    expect(wide).toContain('OrangeCode')
+    expect(narrow).not.toContain('▄███▄')
+    expect(narrow).toContain('OrangeCode')
   })
 })
 
@@ -54,8 +53,8 @@ describe('banner wordmark', () => {
     expect(maxWidth).toBeLessThanOrEqual(ORANGECODE_WORD_WIDTH)
   })
 
-  it('ORANGECODE word is compact enough for a standard terminal', () => {
-    expect(ORANGECODE_WORD_WIDTH).toBeLessThanOrEqual(40)
+  it('ORANGECODE word fits inside a standard 100-col sidebar layout and 80-col viewport', () => {
+    expect(ORANGECODE_WORD_WIDTH).toBeLessThanOrEqual(64)
   })
 })
 
