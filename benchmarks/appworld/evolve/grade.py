@@ -32,7 +32,7 @@ def post(env_url: str, path: str, body: dict, timeout: float = 120.0) -> dict:
 _LLM_TRANSPORT_SIGNS = (
     "error: connection error",
     "sorry, i encountered an error calling the ai model",
-    "acodeflownnectionerror",
+    "aorangecodennectionerror",
     "apitimeouterror",
     "api timeout error",
     "ratelimiterror",

@@ -5,7 +5,7 @@
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-Apache--2.0-0B7285)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-79%20passed-brightgreen)](tests)
+[![Tests](https://img.shields.io/badge/tests-82%20passed-brightgreen)](tests)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 ---
@@ -84,7 +84,7 @@ flowchart TD
 | **链路追踪体系** | `src/orangecode/tracing/` | 符合 OpenTelemetry GenAI 标准的 Span 与上下文持续追踪器。 |
 | **生产级 CLI 矩阵** | `src/orangecode/cli/` | `orangecode run`, `chat`, `session`, `cron`, `gateway`, `doctor` 全套子命令。 |
 | **系统体检诊断** | `src/orangecode/cli/commands.py` | `orangecode doctor` 涵盖 Python、Node、Git、磁盘、模型、沙箱的六维健康体检。 |
-| **评测基准套件** | `benchmarks/` | 完整迁移 CodeFlowBench, AppWorld, ClawBench 等评测基准。 |
+| **评测基准套件** | `benchmarks/` | 完整迁移 OrangeCodeBench, AppWorld, ClawBench 等评测基准。 |
 | **智能体预设模板** | `src/orangecode/templates/` | 内置 `SOUL.md`, `USER.md`, `TOOLS.md`, `AGENTS.md` 契约规范。 |
 
 ---
@@ -146,7 +146,7 @@ uv run orangecode gateway start
 
 ## 自动化测试与质量保障
 
-全量运行 46 项端到端单元测试：
+全量运行 82 项端到端单元测试：
 ```bash
 uv run pytest
 ```

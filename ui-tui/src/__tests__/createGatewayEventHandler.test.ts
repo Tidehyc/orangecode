@@ -203,11 +203,11 @@ describe('createGatewayEventHandler', () => {
     const onEvent = createGatewayEventHandler(ctx)
 
     onEvent({
-      payload: { text: "💾 Self-improvement review: Skill 'codeflow-release' patched" },
+      payload: { text: "💾 Self-improvement review: Skill 'orangecode-release' patched" },
       type: 'review.summary'
     } as any)
 
-    expect(ctx.system.sys).toHaveBeenCalledWith("💾 Self-improvement review: Skill 'codeflow-release' patched")
+    expect(ctx.system.sys).toHaveBeenCalledWith("💾 Self-improvement review: Skill 'orangecode-release' patched")
   })
 
   it('ignores review.summary events with empty or missing text', () => {
@@ -418,7 +418,7 @@ describe('createGatewayEventHandler', () => {
         cwd: '/repo',
         python: '/opt/venv/bin/python',
         stderr_tail:
-          '[startup] timed out\nModuleNotFoundError: No module named openai\nFileNotFoundError: ~/.codeflow/config.yaml'
+          '[startup] timed out\nModuleNotFoundError: No module named openai\nFileNotFoundError: ~/.orangecode/config.yaml'
       },
       type: 'gateway.start_timeout'
     } as any)
@@ -433,10 +433,10 @@ describe('createGatewayEventHandler', () => {
   it('prefers raw text over Rich-rendered ANSI on message.complete (#16391)', () => {
     const appended: Msg[] = []
     const onEvent = createGatewayEventHandler(buildCtx(appended))
-    const raw = 'CodeFlow here.\n\nLine two.'
+    const raw = 'OrangeCode here.\n\nLine two.'
     // Rich 渲染的 ANSI（`final_response_markdown: render`）此前会优先，导致 Ink
     // 输出出现可见转义码；必须以原始文本优先。
-    const rendered = '\u001b[33mCodeFlow here.\u001b[0m\n\n\u001b[2mLine two.\u001b[0m'
+    const rendered = '\u001b[33mOrangeCode here.\u001b[0m\n\n\u001b[2mLine two.\u001b[0m'
 
     onEvent({ payload: { rendered, text: raw }, type: 'message.complete' } as any)
 
@@ -599,7 +599,7 @@ describe('createGatewayEventHandler', () => {
     onEvent({
       payload: {
         message:
-          'agent init failed: No LLM provider configured. Run `codeflow model` to select a provider, or run `codeflow setup` for first-time configuration.'
+          'agent init failed: No LLM provider configured. Run `orangecode model` to select a provider, or run `orangecode setup` for first-time configuration.'
       },
       type: 'error'
     } as any)

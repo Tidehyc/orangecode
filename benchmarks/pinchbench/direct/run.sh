@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CodeFlow 的 PinchBench 直接模式执行器。
+# OrangeCode 的 PinchBench 直接模式执行器。
 #
 # 用法：
 #   ./benchmarks/pinchbench/direct/run.sh                                          # 运行所有任务
@@ -16,10 +16,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/../../.."
 
 echo "=================================================="
-echo "  PinchBench for CodeFlow (DIRECT MODE)"
+echo "  PinchBench for OrangeCode (DIRECT MODE)"
 echo "=================================================="
 
-# 使用 Anaconda Python 3.13（CodeFlow 要求 >=3.11）。
+# 使用 Anaconda Python 3.13（OrangeCode 要求 >=3.11）。
 PYTHON="${PYTHON:-$HOME/anaconda3/bin/python3}"
 if [ ! -x "$PYTHON" ]; then
     PYTHON="python3"

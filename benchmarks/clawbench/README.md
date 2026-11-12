@@ -1,12 +1,12 @@
 # ClawBench Streaming Runner
 
-This directory contains a CodeFlow-only ClawBench runner. It executes tasks
-sequentially in one persistent CodeFlow session:
+This directory contains a OrangeCode-only ClawBench runner. It executes tasks
+sequentially in one persistent OrangeCode session:
 
 1. prepare task 1 workspace;
 2. submit a `TurnRequest` through `AgentLoop.run_turn()`;
 3. grade the workspace with ClawBench's verifier;
-4. repeat for task 2 without clearing the CodeFlow session.
+4. repeat for task 2 without clearing the OrangeCode session.
 
 The ClawBench dataset is not vendored here. Clone it separately and point the
 runner at the checkout.
@@ -18,14 +18,14 @@ git clone https://github.com/claw-bench/claw-bench ../claw-bench
 export CLAW_BENCH_ROOT="$PWD/../claw-bench"
 ```
 
-Install CodeFlow normally, then configure a model. The benchmark runners use
+Install OrangeCode normally, then configure a model. The benchmark runners use
 OpenRouter-style environment names for any OpenAI-compatible gateway:
 
 ```bash
 export OPENROUTER_API_KEY="..."
 export OPENROUTER_API_BASE="https://openrouter.ai/api/v1"
-export CODEFLOW_BENCH_PROVIDER="custom"
-export CODEFLOW_BENCH_MODEL="deepseek-v4-flash"
+export ORANGECODE_BENCH_PROVIDER="custom"
+export ORANGECODE_BENCH_MODEL="deepseek-v4-flash"
 ```
 
 Optional web tools:
@@ -35,7 +35,7 @@ export SERPER_API_KEY="..."
 export JINA_API_KEY="..."
 ```
 
-You can also put the same values in `~/.codeflow/config.json`:
+You can also put the same values in `~/.orangecode/config.json`:
 
 ```json
 {
@@ -83,7 +83,7 @@ Run the first 80 tasks as one streaming session:
 ./benchmarks/clawbench/run.sh \
   --clawbench-root "$CLAW_BENCH_ROOT" \
   --limit 80 \
-  --session-id clawbench-stream-codeflow-80 \
+  --session-id clawbench-stream-orangecode-80 \
   --max-iterations 40
 ```
 
@@ -93,7 +93,7 @@ Run with Curator enabled:
 ./benchmarks/clawbench/run.sh \
   --clawbench-root "$CLAW_BENCH_ROOT" \
   --limit 80 \
-  --session-id clawbench-stream-codeflow-curator-80 \
+  --session-id clawbench-stream-orangecode-curator-80 \
   --context-engine curator \
   --curator-model deepseek-v4-flash \
   --max-iterations 40
@@ -114,8 +114,8 @@ By default outputs are written under `benchmarks/clawbench/results/`:
 - `run_<timestamp>/workspaces/` — per-task workspaces;
 - `run_<timestamp>/transcripts/` — prompts, final responses, errors;
 - `run_<timestamp>/partial_results.json` — updated after each task;
-- `codeflow_clawbench_stream_<timestamp>.json` - final summary;
-- `codeflow_clawbench_stream_<timestamp>.tokens.csv` - per-task token records;
+- `orangecode_clawbench_stream_<timestamp>.json` - final summary;
+- `orangecode_clawbench_stream_<timestamp>.tokens.csv` - per-task token records;
 - `results.md` — live markdown table.
 
 Token columns use provider-reported `response.usage`. `context_used` is the

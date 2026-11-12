@@ -1,5 +1,5 @@
 """
-PinchBench Task Loader — adapted for codeflow.
+PinchBench Task Loader — adapted for orangecode.
 
 Reuses PinchBench's task markdown format (YAML frontmatter + sections).
 """

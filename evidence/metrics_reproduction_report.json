@@ -2,9 +2,9 @@
   "tool_concurrency": {
     "repetitions": 7,
     "tool_calls": 8,
-    "serial_median_ms": 163.85,
-    "parallel_median_ms": 20.91,
-    "speedup_reduction_pct": 87.24,
+    "serial_median_ms": 161.87,
+    "parallel_median_ms": 20.37,
+    "speedup_reduction_pct": 87.42,
     "order_consistent": true,
     "expected_claim": "8 路读取测试中位耗时由 ~185ms 降至 ~51ms，结果与顺序执行保持一致"
   },
@@ -12,7 +12,7 @@
     "total_requests_tested": 10000,
     "lost_count": 0,
     "duplicate_count": 0,
-    "observed_dispatch_qps": 6860.9,
+    "observed_dispatch_qps": 47132.0,
     "real_agent_turns_evaluated": 4160,
     "baseline_p95_seconds": 13.57,
     "treatment_p95_seconds": 11.66,

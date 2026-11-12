@@ -29,8 +29,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from codeflow.config.loader import load_config
-from codeflow.evolver.orchestrator.scoring import PrecheckFn
+from orangecode.config.loader import load_config
+from orangecode.evolver.orchestrator.scoring import PrecheckFn
 
 from benchmarks.appworld.evolve.adapter import AppWorldConfig
 
@@ -57,7 +57,7 @@ def _subject_endpoint(
     try:
         runtime = load_config(config_path)
     except ValueError:
-        return None, None, {}, f"subject config fails the CodeFlow runtime schema: {config_path}"
+        return None, None, {}, f"subject config fails the OrangeCode runtime schema: {config_path}"
     model = runtime.agents.defaults.model
     provider = runtime.get_provider(model)
     api_base = runtime.get_api_base(model)

@@ -1,4 +1,4 @@
-// FPS 计数浮层（CODEFLOW_TUI_FPS=1），禁用时没有额外开销。
+// FPS 计数浮层（ORANGECODE_TUI_FPS=1），禁用时没有额外开销。
 
 import { Text } from '@hermes/ink'
 import { useStore } from '@nanostores/react'

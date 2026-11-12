@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run CodeFlow on ClawBench as one persistent streaming session.
+"""Run OrangeCode on ClawBench as one persistent streaming session.
 
 This runner intentionally lives under benchmarks/ and imports the runtime
 package, not the other way around. It expects a local checkout of
@@ -80,7 +80,7 @@ class UsageTrackingProvider:
         return getattr(self._inner, name)
 
 
-class CodeFlowSession:
+class OrangeCodeSession:
     def __init__(
         self,
         *,
@@ -97,11 +97,11 @@ class CodeFlowSession:
         curator_model: str | None,
         restrict_to_workspace: bool,
     ) -> None:
-        from codeflow.agent.loop import AgentLoop
-        from codeflow.cli.commands import _make_provider
-        from codeflow.config.codeflow import ContextConfig
-        from codeflow.config.loader import load_config, set_config_path
-        from codeflow.session.manager import SessionManager
+        from orangecode.agent.loop import AgentLoop
+        from orangecode.cli.commands import _make_provider
+        from orangecode.config.orangecode import ContextConfig
+        from orangecode.config.loader import load_config, set_config_path
+        from orangecode.session.manager import SessionManager
 
         workspace.mkdir(parents=True, exist_ok=True)
         if config_path is not None:
@@ -151,7 +151,7 @@ class CodeFlowSession:
             channels_config=self.config.channels,
             context_config=context_config,
             # 基准是非交互式批量运行，因此禁用 Bug2 的逐轮 shadow-git 检查点；既没有可
-            # 注入恢复信息的渠道，也不希望任务工作区出现 ``.codeflow/shadow.git``。
+            # 注入恢复信息的渠道，也不希望任务工作区出现 ``.orangecode/shadow.git``。
             interactive=False,
         )
 
@@ -162,7 +162,7 @@ class CodeFlowSession:
     async def run(self, message: str, *, task_id: str) -> tuple[str, dict[str, Any]]:
         before = dict(self.previous_totals)
         before_calls = self.previous_call_count
-        from codeflow.spine import ChatType, Origin, Source, Text, TurnRequest
+        from orangecode.spine import ChatType, Origin, Source, Text, TurnRequest
 
         _parts: list[str] = []
 
@@ -351,7 +351,7 @@ def grade_task(task_dir: Path, workspace: Path) -> dict[str, Any]:
 async def run_one_task(
     *,
     args: argparse.Namespace,
-    codeflow: CodeFlowSession,
+    orangecode: OrangeCodeSession,
     task: Any,
     task_dir: Path,
     index: int,
@@ -374,7 +374,7 @@ async def run_one_task(
     error = None
     try:
         final_text, token_stats = await asyncio.wait_for(
-            codeflow.run(prepared.prompt, task_id=task.id),
+            orangecode.run(prepared.prompt, task_id=task.id),
             timeout=args.timeout or task.timeout,
         )
     except Exception as exc:
@@ -403,7 +403,7 @@ async def run_one_task(
         "track": task.track,
         "task_dir": str(task_dir),
         "workspace": str(prepared.workspace),
-        "codeflow_error": error,
+        "orangecode_error": error,
         "wall_time_s": round(time.monotonic() - started, 2),
         "tokens_input": int(delta.get("prompt_tokens", 0)),
         "tokens_output": int(delta.get("completion_tokens", 0)),
@@ -470,7 +470,7 @@ def write_markdown(
     passed = sum(1 for r in results if r.get("passed"))
     avg_score = sum(float(r.get("score", 0.0)) for r in results) / max(total, 1)
     lines = [
-        "# ClawBench CodeFlow Streaming Results",
+        "# ClawBench OrangeCode Streaming Results",
         "",
         f"- Date: {now_iso()}",
         "- Runner: `benchmarks/clawbench/stream.py`",
@@ -509,7 +509,7 @@ def write_markdown(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run CodeFlow against ClawBench sequentially with one persistent session.")
+    parser = argparse.ArgumentParser(description="Run OrangeCode against ClawBench sequentially with one persistent session.")
     parser.add_argument("--clawbench-root", default="")
     parser.add_argument("--tasks-root", default="")
     parser.add_argument("--task", action="append", default=[])
@@ -517,11 +517,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--level", default="")
     parser.add_argument("--track", default="")
     parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--session-id", default="clawbench-stream-codeflow")
+    parser.add_argument("--session-id", default="clawbench-stream-orangecode")
     parser.add_argument("--trace-dir", default=str(DEFAULT_TRACE_DIR))
-    parser.add_argument("--config", default="", help="CodeFlow config path")
-    parser.add_argument("--model", default=os.environ.get("CODEFLOW_BENCH_MODEL", ""))
-    parser.add_argument("--provider", default=os.environ.get("CODEFLOW_BENCH_PROVIDER", ""))
+    parser.add_argument("--config", default="", help="OrangeCode config path")
+    parser.add_argument("--model", default=os.environ.get("ORANGECODE_BENCH_MODEL", ""))
+    parser.add_argument("--provider", default=os.environ.get("ORANGECODE_BENCH_PROVIDER", ""))
     parser.add_argument("--api-key", default=os.environ.get("OPENROUTER_API_KEY", ""))
     parser.add_argument("--api-base", default=os.environ.get("OPENROUTER_API_BASE", ""))
     parser.add_argument("--context-window", type=int, default=0)
@@ -553,7 +553,7 @@ async def amain() -> int:
     transcripts_dir.mkdir(parents=True, exist_ok=True)
 
     config_path = Path(args.config).expanduser().resolve() if args.config else None
-    codeflow = CodeFlowSession(
+    orangecode = OrangeCodeSession(
         workspace=run_dir,
         session_id=args.session_id,
         model=args.model or None,
@@ -579,7 +579,7 @@ async def amain() -> int:
             )
             result = await run_one_task(
                 args=args,
-                codeflow=codeflow,
+                orangecode=orangecode,
                 task=task,
                 task_dir=task_dirs[task.id],
                 index=index,
@@ -595,15 +595,15 @@ async def amain() -> int:
             (run_dir / "partial_results.json").write_text(
                 json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8"
             )
-            write_markdown(results_md, results, args, codeflow.model, summary_path)
+            write_markdown(results_md, results, args, orangecode.model, summary_path)
     finally:
-        await codeflow.close()
+        await orangecode.close()
 
-    summary_path = trace_dir / f"codeflow_clawbench_stream_{run_stamp}.json"
+    summary_path = trace_dir / f"orangecode_clawbench_stream_{run_stamp}.json"
     summary = {
         "run_started_at": run_stamp,
         "runner": "benchmarks/clawbench/stream.py",
-        "model": codeflow.model,
+        "model": orangecode.model,
         "session_id": args.session_id,
         "context_engine": args.context_engine,
         "curator_model": args.curator_model if args.context_engine == "curator" else None,
@@ -614,9 +614,9 @@ async def amain() -> int:
         "results": results,
     }
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-    tokens_csv = trace_dir / f"codeflow_clawbench_stream_{run_stamp}.tokens.csv"
+    tokens_csv = trace_dir / f"orangecode_clawbench_stream_{run_stamp}.tokens.csv"
     write_tokens_csv(tokens_csv, results)
-    write_markdown(results_md, results, args, codeflow.model, summary_path)
+    write_markdown(results_md, results, args, orangecode.model, summary_path)
     print(f"summary: {summary_path}", flush=True)
     print(f"tokens_csv: {tokens_csv}", flush=True)
     print(f"results_md: {results_md}", flush=True)

@@ -6,11 +6,11 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { getCodeFlowHome } from '../config/paths.js'
+import { getOrangeCodeHome } from '../config/paths.js'
 
 const MAX = 1000
-const dir = getCodeFlowHome()
-const file = join(dir, '.codeflow_history')
+const dir = getOrangeCodeHome()
+const file = join(dir, '.orangecode_history')
 
 let cache: string[] | null = null
 

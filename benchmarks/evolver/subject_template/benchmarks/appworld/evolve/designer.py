@@ -15,8 +15,8 @@ import re
 from pathlib import Path
 from typing import Callable
 
-from codeflow.evolver.orchestrator.nodes.semantic import SemanticNode
-from codeflow.evolver.tree import git_ops
+from orangecode.evolver.orchestrator.nodes.semantic import SemanticNode
+from orangecode.evolver.tree import git_ops
 
 from benchmarks.appworld.evolve.adapter import MODULE_PATH
 from benchmarks.appworld.evolve.tasks import PUBLIC_SURFACE, WHY_DEFINITIONS, task_for

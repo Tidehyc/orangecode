@@ -7,7 +7,7 @@ much faster than SWE-bench, which makes a full evolution round tractable.
 
 The scorer is the batch orchestrator ``benchmarks.appworld.batch`` (in
 the appworld worktree; talks to appworld over HTTP — two venvs, appworld pins
-pydantic v1, CodeFlow v2). CLI (from the real ``batch.py``)::
+pydantic v1, OrangeCode v2). CLI (from the real ``batch.py``)::
 
     python -m benchmarks.appworld.batch \
         --split train --n 90 --k 3 --conc 8 \
@@ -42,18 +42,18 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from codeflow.evolver.analysis.stability_bucket import (
+from orangecode.evolver.analysis.stability_bucket import (
     TaskStability,
     _bucket_for,
 )
-from codeflow.evolver.orchestrator.scoring import (
+from orangecode.evolver.orchestrator.scoring import (
     EvalBackend,
     TaskEval,
     prefer_rerun_measurement,
     with_infra_rerun,
 )
-from codeflow.evolver.scheduler.anchor_selection import simple_anchor
-from codeflow.evolver.tree.node import HarnessNode
+from orangecode.evolver.scheduler.anchor_selection import simple_anchor
+from orangecode.evolver.tree.node import HarnessNode
 
 ActivationOf = Callable[[HarnessNode], Any]
 
@@ -71,11 +71,11 @@ _TRIAL_SUFFIX_RE = re.compile(r"_k\d+\.json$")
 class AppWorldConfig:
     """Locate and parameterise the AppWorld batch scorer."""
 
-    appworld_root: Path  # CodeFlow 检出或工作树，包含批量模块。
+    appworld_root: Path  # OrangeCode 检出或工作树，包含批量模块。
     data_root: Path  # AppWorld 安装目录，包含 data/ 与虚拟环境。
     appworld_bin: Path
     appworld_python: Path
-    python_exe: str  # CodeFlow 使用的 Pydantic v2 虚拟环境 Python。
+    python_exe: str  # OrangeCode 使用的 Pydantic v2 虚拟环境 Python。
     config_path: Path  # 目标运行时配置 JSON。
     out_dir_root: Path
     split: str = "train"
@@ -264,7 +264,7 @@ def run_eval(
 
     ``cwd`` overrides the subprocess working directory (default
     ``aw.appworld_root``). Passing a candidate commit's worktree here makes
-    ``python -m codeflow...`` import the candidate's harness from that checkout
+    ``python -m orangecode...`` import the candidate's harness from that checkout
     (cwd is first on ``sys.path`` for ``-m``) — the zero-contamination eval that
     replaces writing candidate files into the live repo. Activation env is then
     unnecessary: the committed code is already the candidate.

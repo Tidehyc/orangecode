@@ -26,16 +26,16 @@ from collections import Counter
 from pathlib import Path
 from typing import Callable, Optional
 
-from codeflow.evolver.orchestrator.nodes.taxonomy import (
+from orangecode.evolver.orchestrator.nodes.taxonomy import (
     TaxonomySpec,
     add_failure_mode,
     coerce_mode,
     empty_failure_map,
     strip_code_fence,
 )
-from codeflow.evolver.orchestrator.providers.claude_agentic import run_agentic_session
-from codeflow.evolver.tree import git_ops
-from codeflow.evolver.tree.node import HarnessNode
+from orangecode.evolver.orchestrator.providers.claude_agentic import run_agentic_session
+from orangecode.evolver.tree import git_ops
+from orangecode.evolver.tree.node import HarnessNode
 
 from benchmarks.appworld.evolve.diagnose import (
     APPWORLD_BENCH_INTRO,
@@ -98,8 +98,8 @@ def build_analysis_workspace(
         "",
         "## Where to look deeper",
         "- raw results: runs/<task>_k<n>.json (evaluation.failures = oracle)",
-        f"- transcripts: sessions/appworld/<task>_{exp}_k<n>.jsonl (CodeFlow layout) or att/<task>_{exp}_k<n>/sessions/",
-        "- harness source (the code a fix would patch): harness/benchmarks/appworld/, harness/codeflow/agent/",
+        f"- transcripts: sessions/appworld/<task>_{exp}_k<n>.jsonl (OrangeCode layout) or att/<task>_{exp}_k<n>/sessions/",
+        "- harness source (the code a fix would patch): harness/benchmarks/appworld/, harness/orangecode/agent/",
     ]
     (ws / "ledger_digest.md").write_text("\n".join(lines))
 

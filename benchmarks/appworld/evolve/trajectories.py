@@ -23,8 +23,8 @@ import json
 from pathlib import Path
 from typing import Callable, Optional
 
-from codeflow.evolver.orchestrator.scoring import TaskEval
-from codeflow.evolver.tree.node import HarnessNode
+from orangecode.evolver.orchestrator.scoring import TaskEval
+from orangecode.evolver.tree.node import HarnessNode
 
 from benchmarks.appworld.evolve.adapter import read_out_dir
 
@@ -120,10 +120,10 @@ def default_sess_path(runs_root: Path, ws_root: Path, tid: str, exp: str, k: int
     legacy = ws_root / "sessions" / f"{tid}_{exp}_k{k}.jsonl"
     if legacy.exists():
         return legacy
-    # CodeFlow SessionManager 将对话键 "appworld:<tid>_<exp>_k<k>" 持久化为
+    # OrangeCode SessionManager 将对话键 "appworld:<tid>_<exp>_k<k>" 持久化为
     # sessions/<channel>/<chat_id>.jsonl。
-    codeflow = ws_root / "sessions" / "appworld" / f"{tid}_{exp}_k{k}.jsonl"
-    return codeflow if codeflow.exists() else None
+    orangecode = ws_root / "sessions" / "appworld" / f"{tid}_{exp}_k{k}.jsonl"
+    return orangecode if orangecode.exists() else None
 
 
 def _ladder_exps(exp: str) -> list[str]:

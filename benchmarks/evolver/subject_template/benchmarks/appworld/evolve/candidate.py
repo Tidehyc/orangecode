@@ -11,17 +11,17 @@ from dataclasses import dataclass, field
 from difflib import unified_diff
 from pathlib import Path
 
-from codeflow.evolver.candidate_manifest import (
+from orangecode.evolver.candidate_manifest import (
     CandidateLabel,
     CandidateManifest,
     ManifestGateError,
     assert_manifest_gate,
     manifest_for_patch,
 )
-from codeflow.evolver.judge.schema import PatchWhere, PatchWhy
-from codeflow.evolver.tree import git_ops
-from codeflow.evolver.tree.git_ops import GitOpError
-from codeflow.evolver.tree.node import AppliedPatch, PatchComponent
+from orangecode.evolver.judge.schema import PatchWhere, PatchWhy
+from orangecode.evolver.tree import git_ops
+from orangecode.evolver.tree.git_ops import GitOpError
+from orangecode.evolver.tree.node import AppliedPatch, PatchComponent
 
 from benchmarks.appworld.evolve.adapter import MODULE_PATH
 

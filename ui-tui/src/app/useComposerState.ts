@@ -285,7 +285,7 @@ export function useComposerState({
   )
 
   const openEditor = useCallback(async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'codeflow-'))
+    const dir = mkdtempSync(join(tmpdir(), 'orangecode-'))
     const file = join(dir, 'prompt.md')
     const [cmd, ...args] = resolveEditor()
 

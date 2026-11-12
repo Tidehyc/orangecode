@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CodeFlow 的 PinchBench 机器人模式执行器。
+# OrangeCode 的 PinchBench 机器人模式执行器。
 #
 # 此执行器为每个任务运行完整机器人（AgentLoop run_turn），测试通过 Spine 的
 # 完整轮次流程。
@@ -18,10 +18,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/../../.."
 
 echo "=================================================="
-echo "  PinchBench for CodeFlow (BOT MODE)"
+echo "  PinchBench for OrangeCode (BOT MODE)"
 echo "=================================================="
 
-# 使用 Anaconda Python 3.13（CodeFlow 要求 >=3.11）。
+# 使用 Anaconda Python 3.13（OrangeCode 要求 >=3.11）。
 PYTHON="${PYTHON:-$HOME/anaconda3/bin/python3}"
 if [ ! -x "$PYTHON" ]; then
     PYTHON="python3"

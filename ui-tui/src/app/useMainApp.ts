@@ -533,7 +533,7 @@ export function useMainApp(gw: TuiRpcClient, rpcClient?: ChatStreamRpcClient) {
 
   const tabCwd = ui.info?.cwd
 
-  useTerminalTitle(model ? `CodeFlow · ${marker} ${model}${tabCwd ? ` · ${shortCwd(tabCwd, 24)}` : ''}` : 'CodeFlow')
+  useTerminalTitle(model ? `OrangeCode · ${marker} ${model}${tabCwd ? ` · ${shortCwd(tabCwd, 24)}` : ''}` : 'OrangeCode')
 
   useEffect(() => {
     if (!ui.sid || !stdout) {
@@ -908,7 +908,7 @@ export function useMainApp(gw: TuiRpcClient, rpcClient?: ChatStreamRpcClient) {
   // 面板随机消失。
   const appProgress = useMemo(() => ({ showProgressArea }), [showProgressArea])
 
-  const cwd = ui.info?.cwd || process.env.CODEFLOW_CWD || process.cwd()
+  const cwd = ui.info?.cwd || process.env.ORANGECODE_CWD || process.cwd()
   const gitBranch = useGitBranch(cwd)
 
   const appStatus = useMemo(

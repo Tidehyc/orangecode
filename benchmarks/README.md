@@ -1,37 +1,37 @@
-# CodeFlow Benchmarks
+# OrangeCode Benchmarks
 
 This directory holds **evaluation harnesses** that are deliberately decoupled
-from the runtime package. They are not imported by `codeflow/` and are
+from the runtime package. They are not imported by `orangecode/` and are
 excluded from the wheel build — keep it that way.
 
 The Markdown task cards under `pinchbench/tasks/` are executable benchmark
-fixtures, not CodeFlow product documentation. Some intentionally probe capabilities
-removed from CodeFlow, including image generation or remote Skill discovery. A
+fixtures, not OrangeCode product documentation. Some intentionally probe capabilities
+removed from OrangeCode, including image generation or remote Skill discovery. A
 task card's presence does not mean the current Runtime supports that Tool.
 
 Use this area for reproducible evaluation work: capability suites, agent
 comparisons, and context stress tests that should not ship as part of the
 end-user CLI package.
 
-## CodeFlowBench
+## OrangeCodeBench
 
-CodeFlowBench Ship-1 is the checkout-only Agent application evaluation harness
-under `benchmarks/codeflowbench/`. Its contract is documented under
+OrangeCodeBench Ship-1 is the checkout-only Agent application evaluation harness
+under `benchmarks/orangecodebench/`. Its contract is documented under
 [public evaluation notes](../docs/evaluation/README.md). It evaluates the existing
 Runtime through frozen, single-axis paired tasks and parent-owned deterministic
 Verifiers.
 
 The implementation does not create a result claim by itself. Generated
-CodeFlowBench evidence remains outside Git. Ship Completeness and Measurement
+OrangeCodeBench evidence remains outside Git. Ship Completeness and Measurement
 Validity govern the campaign, while each capability separately applies its
 Positive Claim Eligibility rules. PinchBench, EvalEngine, Evolver evidence,
-CodeFlowBench, and V-R0 remain distinct scopes.
+OrangeCodeBench, and V-R0 remain distinct scopes.
 
 The final-history Ship-1 campaign completed all 216 planned E2E Trials and 260
 Retrieval Cases, but one Context Pair lacked complete usage evidence and made
 the aggregate measurement invalid. Tool disclosure also regressed task pass
 count, so the retained main-campaign material exports no positive CV metric.
-See [CodeFlowBench](codeflowbench/README.md) for the published experiment boundary.
+See [OrangeCodeBench](orangecodebench/README.md) for the published experiment boundary.
 
 ## Layout
 
@@ -40,7 +40,7 @@ benchmarks/
 ├── appworld/           AppWorld agent benchmark + evolver plugin
 │   ├── agent_cli.py       One-task subject agent (drives AgentLoop)
 │   ├── batch.py           Batch scorer: N tasks x K trials, resumable
-│   └── evolve/            codeflow.evolver BenchBundle plugin (entry.py)
+│   └── evolve/            orangecode.evolver BenchBundle plugin (entry.py)
 │                          + designer/diagnosis/sandbox/precheck glue
 │
 ├── evolver/            Deterministic Evolution Run subject
@@ -56,7 +56,7 @@ benchmarks/
 │   ├── assets/            Task-specific workspace files
 │   └── results/           Run outputs (gitignored)
 │
-├── codeflowbench/          Agent application evaluation harness
+├── orangecodebench/          Agent application evaluation harness
 │   ├── packs/             Runtime, Context, Memory/Skill, and Tool/MCP tracks
 │   ├── suites/            Frozen experiment plans and claim rules
 │   └── README.md          Smoke, campaign, rebuild, and evidence boundaries
@@ -81,7 +81,7 @@ retrieval architecture.
 
 ### Model and tool configuration
 
-The benchmark runners can use the normal `~/.codeflow/config.json`, or the
+The benchmark runners can use the normal `~/.orangecode/config.json`, or the
 environment overrides below. Never commit real keys.
 
 For an OpenAI-compatible gateway using OpenRouter-style environment names:
@@ -89,8 +89,8 @@ For an OpenAI-compatible gateway using OpenRouter-style environment names:
 ```bash
 export OPENROUTER_API_KEY="..."
 export OPENROUTER_API_BASE="https://openrouter.ai/api/v1"
-export CODEFLOW_BENCH_PROVIDER="custom"
-export CODEFLOW_BENCH_MODEL="deepseek-v4-flash"
+export ORANGECODE_BENCH_PROVIDER="custom"
+export ORANGECODE_BENCH_MODEL="deepseek-v4-flash"
 ```
 
 Optional web tools:
@@ -100,7 +100,7 @@ export SERPER_API_KEY="..."
 export JINA_API_KEY="..."
 ```
 
-Equivalent `~/.codeflow/config.json`:
+Equivalent `~/.orangecode/config.json`:
 
 ```json
 {
@@ -152,7 +152,7 @@ export CLAW_BENCH_ROOT="$PWD/../claw-bench"
 ./benchmarks/clawbench/run.sh \
     --clawbench-root "$CLAW_BENCH_ROOT" \
     --limit 80 \
-    --session-id clawbench-stream-codeflow-80 \
+    --session-id clawbench-stream-orangecode-80 \
     --max-iterations 40
 ```
 
@@ -161,7 +161,7 @@ ClawBench with Curator context engine:
 ./benchmarks/clawbench/run.sh \
     --clawbench-root "$CLAW_BENCH_ROOT" \
     --limit 80 \
-    --session-id clawbench-stream-codeflow-curator-80 \
+    --session-id clawbench-stream-orangecode-curator-80 \
     --context-engine curator \
     --curator-model deepseek-v4-flash \
     --max-iterations 40
@@ -169,11 +169,11 @@ ClawBench with Curator context engine:
 
 ## Relation to runtime
 
-The runtime (`codeflow/`) **never statically imports from `benchmarks/`** — this
+The runtime (`orangecode/`) **never statically imports from `benchmarks/`** — this
 is the "independent eval track" principle. The reverse is allowed and
-expected: benchmarks import `codeflow.agent`, `codeflow.providers`, etc. directly.
+expected: benchmarks import `orangecode.agent`, `orangecode.providers`, etc. directly.
 
-One scoped exception: `codeflow.evolver` loads its bench *plugins* from here by
+One scoped exception: `orangecode.evolver` loads its bench *plugins* from here by
 registry name at launch (`benchmarks.appworld.evolve.entry:build`), inserting
 the subject repo root on `sys.path` first. It is lazy, opt-in, and only works
 from a repo checkout — evolution needs the git repo as its subject anyway, so

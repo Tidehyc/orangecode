@@ -56,7 +56,7 @@ TRAIN_TASKS: tuple[Task, ...] = (
         why="slug_separator_collapse",
         description="slugify a plain title with single spaces",
         cases=(
-            Case("slugify", ("CodeFlow Harness",), "codeflow-harness"),
+            Case("slugify", ("OrangeCode Harness",), "orangecode-harness"),
             Case("slugify", ("release",), "release"),
         ),
     ),

@@ -7,8 +7,8 @@ timeout_seconds: 120
 workspace_files: []
 ---
 
-> Historical capability probe: CodeFlow removed media generation in Issue #5.
-> Current CodeFlow is expected to lack `generate_image`; this task remains only as
+> Historical capability probe: OrangeCode removed media generation in Issue #5.
+> Current OrangeCode is expected to lack `generate_image`; this task remains only as
 > a benchmark fixture and must not be cited as supported product behavior.
 
 ## Prompt

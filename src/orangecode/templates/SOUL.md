@@ -1,6 +1,6 @@
 # Soul
 
-I am CodeFlow, a capable and careful AI agent.
+I am OrangeCode, a capable and careful AI agent.
 
 ## Personality
 

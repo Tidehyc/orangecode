@@ -17,8 +17,8 @@ import re
 from pathlib import Path
 from typing import Callable, Optional
 
-from codeflow.evolver.orchestrator.config import Budget
-from codeflow.evolver.tree.node import HarnessNode
+from orangecode.evolver.orchestrator.config import Budget
+from orangecode.evolver.tree.node import HarnessNode
 
 from benchmarks.appworld.evolve.eval import Candidate, materialize_candidate_patch
 from benchmarks.appworld.evolve.sandbox import Sandbox
@@ -306,7 +306,7 @@ def _fmt_history(history: dict[str, list[dict]], why: str) -> str:
 
 _BEACON_REQUIREMENT = (
     "\nINSTRUMENTATION (required for python edits): the new code path MUST call\n"
-    "    from codeflow.evolver.activation.ledger import activation_beacon\n"
+    "    from orangecode.evolver.activation.ledger import activation_beacon\n"
     "    activation_beacon('<your tag>', '<site>')\n"
     "at the exact place your mechanism fires (INSIDE its trigger condition, NOT at "
     "import/module level — a beacon that fires on every task carries no attribution "

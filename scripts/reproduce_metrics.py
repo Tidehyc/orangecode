@@ -1,5 +1,5 @@
 """
-CodeFlow / OrangeCode - 简历各项技术与数据指标自动化复现脚本
+OrangeCode - 简历各项技术与数据指标自动化复现脚本
 ====================================================================
 用于一键端到端复现、测试与量化校验简历中所提及的所有 7 大技术指标：
 1. 任务调度高并发与可靠性（10,000 请求 0 丢失 0 重复 & P95 降幅）
@@ -480,7 +480,7 @@ def reproduce_swe_bench_metrics() -> dict[str, Any]:
 async def main() -> None:
     console.print(
         Panel.fit(
-            "[bold cyan]CodeFlow / OrangeCode - 简历各项技术与数据指标端到端复现验证[/bold cyan]\n"
+            "[bold cyan]OrangeCode - 简历各项技术与数据指标端到端复现验证[/bold cyan]\n"
             "[dim]正在对简历 7 大核心 Claim 进行点对点测试压测、数据计算与事实核验...[/dim]",
             border_style="cyan",
         )
@@ -540,7 +540,7 @@ async def main() -> None:
     console.print(f"  ✔ 端到端输入 Token 降低: [bold green]{swe_res['end_to_end_token_reduction_pct']}%[/bold green]")
 
     # 汇总数据对比总表
-    summary_table = Table(title="CodeFlow / OrangeCode 简历指标复现核验总览", border_style="green")
+    summary_table = Table(title="OrangeCode 简历指标复现核验总览", border_style="green")
     summary_table.add_column("简历指标项 (Claim)", style="bold cyan", width=26)
     summary_table.add_column("简历声称指标", style="yellow", width=36)
     summary_table.add_column("实测复现数据", style="bold green", width=36)
@@ -612,7 +612,7 @@ async def main() -> None:
         json.dump(all_evidence, f, ensure_ascii=False, indent=2)
 
     report_md_path = evidence_dir / "metrics_reproduction_report.md"
-    markdown_content = f"""# CodeFlow / OrangeCode 简历技术指标自动化复现核验报告
+    markdown_content = f"""# OrangeCode 简历技术指标自动化复现核验报告
 
 > **生成时间**: {time.strftime('%Y-%m-%d %H:%M:%S')}  
 > **代码库**: `/home/tide/GoProjects/orangecode`  

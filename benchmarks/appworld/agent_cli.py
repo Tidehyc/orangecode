@@ -1,7 +1,7 @@
-"""Run ONE AppWorld task through a minimal CodeFlow AgentLoop, then grade.
+"""Run ONE AppWorld task through a minimal OrangeCode AgentLoop, then grade.
 
 Cross-venv design (see tool.py): AppWorld (pydantic v1) runs as an HTTP
-``environment`` server; this runner (CodeFlow, pydantic v2) never imports
+``environment`` server; this runner (OrangeCode, pydantic v2) never imports
 appworld — it drives the task purely over HTTP:
 
   POST {env}/initialize {task_id}      -> instruction + supervisor (loads world)
@@ -56,15 +56,15 @@ Your task:
 
 
 def _build_agent(args):
-    from codeflow.agent.loop import AgentLoop
-    from codeflow.cli._helpers import load_runtime_config, make_provider
-    from codeflow.config.codeflow import load_codeflow_config
-    from codeflow.session.manager import SessionManager
+    from orangecode.agent.loop import AgentLoop
+    from orangecode.cli._helpers import load_runtime_config, make_provider
+    from orangecode.config.orangecode import load_orangecode_config
+    from orangecode.session.manager import SessionManager
 
     from benchmarks.appworld.tool import AppWorldExecuteTool
 
     config = load_runtime_config(args.config, args.workspace)
-    ec_config = load_codeflow_config()
+    ec_config = load_orangecode_config()
     provider = make_provider(config)
 
     # AppWorld 只使用 API 与代码：禁用所有默认工具，仅提供 `execute`。
@@ -115,10 +115,10 @@ async def _run(args) -> dict:
         agent, exec_tool = _build_agent(args)
         skey = args.session or args.task_id
         try:
-            # CodeFlow 的 AgentLoop 由 Spine 驱动，没有 process_direct。通过 run_turn 运行一个
+            # OrangeCode 的 AgentLoop 由 Spine 驱动，没有 process_direct。通过 run_turn 运行一个
             # 无头轮次，emit/drain 为空操作，并用 text_sink 捕获最终回复。AppWorld 成功与否
             # 由环境预言机 /evaluate 判断，而非该文本；文本仅用于传输错误探测和结果记录。
-            from codeflow.spine import ChatType, Origin, Source, TurnRequest
+            from orangecode.spine import ChatType, Origin, Source, TurnRequest
 
             async def _emit(_event):
                 return None
@@ -130,7 +130,7 @@ async def _run(args) -> dict:
             req = TurnRequest(
                 origin=Origin.USER,
                 source=Source(channel="cli", chat_id="direct", sender_id="user", chat_type=ChatType.DM),
-                # CodeFlow 的 SessionManager 按 ':' 将对话键拆为 <channel>/<chat_id>.jsonl。添加固定
+                # OrangeCode 的 SessionManager 按 ':' 将对话键拆为 <channel>/<chat_id>.jsonl。添加固定
                 # 渠道前缀，使每次尝试的记录落到 Evolver 可读取的简洁扁平路径：
                 # ws/sessions/appworld/<tid>_<exp>_k<k>.jsonl。
                 text=prompt,
@@ -169,7 +169,7 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="appworld-agent")
     p.add_argument("--task-id", required=True)
     p.add_argument("--env-url", required=True, help="AppWorld environment server base URL.")
-    p.add_argument("--config", required=True, help="CodeFlow runtime config JSON.")
+    p.add_argument("--config", required=True, help="OrangeCode runtime config JSON.")
     p.add_argument("--out", required=True, help="Where to write the result JSON.")
     p.add_argument("--workspace", default=os.path.expanduser("~/workspace/appworld-run/ws"))
     p.add_argument("--model", default=None)

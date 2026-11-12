@@ -9,39 +9,39 @@ import { applyColorOverride, parseColorOverride } from '../lib/colorTier.js'
 
 describe('parseColorOverride', () => {
   it('maps named + numeric tiers', () => {
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: 'truecolor' })).toBe(3)
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: '24bit' })).toBe(3)
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: '256' })).toBe(2)
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: '16' })).toBe(1)
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: 'none' })).toBe(0)
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: '3' })).toBe(3)
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: 'truecolor' })).toBe(3)
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: '24bit' })).toBe(3)
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: '256' })).toBe(2)
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: '16' })).toBe(1)
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: 'none' })).toBe(0)
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: '3' })).toBe(3)
   })
 
   it('treats auto / unset / unknown as auto (null)', () => {
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: 'auto' })).toBeNull()
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: 'auto' })).toBeNull()
     expect(parseColorOverride({})).toBeNull()
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: 'wat' })).toBeNull()
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: 'wat' })).toBeNull()
   })
 
-  it('honors the legacy CODEFLOW_TUI_TRUECOLOR alias', () => {
-    expect(parseColorOverride({ CODEFLOW_TUI_TRUECOLOR: '1' })).toBe(3)
-    expect(parseColorOverride({ CODEFLOW_TUI_TRUECOLOR: '0' })).toBeNull()
+  it('honors the legacy ORANGECODE_TUI_TRUECOLOR alias', () => {
+    expect(parseColorOverride({ ORANGECODE_TUI_TRUECOLOR: '1' })).toBe(3)
+    expect(parseColorOverride({ ORANGECODE_TUI_TRUECOLOR: '0' })).toBeNull()
   })
 
-  it('lets CODEFLOW_TUI_COLOR win over the legacy alias', () => {
-    expect(parseColorOverride({ CODEFLOW_TUI_COLOR: '256', CODEFLOW_TUI_TRUECOLOR: '1' })).toBe(2)
+  it('lets ORANGECODE_TUI_COLOR win over the legacy alias', () => {
+    expect(parseColorOverride({ ORANGECODE_TUI_COLOR: '256', ORANGECODE_TUI_TRUECOLOR: '1' })).toBe(2)
   })
 })
 
 describe('applyColorOverride', () => {
   it('pins HERMES_TUI_LEVEL to the requested tier', () => {
-    const env: NodeJS.ProcessEnv = { CODEFLOW_TUI_COLOR: '256' }
+    const env: NodeJS.ProcessEnv = { ORANGECODE_TUI_COLOR: '256' }
     expect(applyColorOverride(env)).toBe(2)
     expect(env.HERMES_TUI_LEVEL).toBe('2')
   })
 
   it('forces colors off for none', () => {
-    const env: NodeJS.ProcessEnv = { CODEFLOW_TUI_COLOR: 'none' }
+    const env: NodeJS.ProcessEnv = { ORANGECODE_TUI_COLOR: 'none' }
     expect(applyColorOverride(env)).toBe(0)
     expect(env.HERMES_TUI_LEVEL).toBe('0')
     expect(env.FORCE_COLOR).toBe('0')
@@ -54,13 +54,13 @@ describe('applyColorOverride', () => {
   })
 
   it('NO_COLOR beats a typed --color (forces off)', () => {
-    const env: NodeJS.ProcessEnv = { NO_COLOR: '1', CODEFLOW_TUI_COLOR: 'truecolor' }
+    const env: NodeJS.ProcessEnv = { NO_COLOR: '1', ORANGECODE_TUI_COLOR: 'truecolor' }
     expect(applyColorOverride(env)).toBe(0)
     expect(env.HERMES_TUI_LEVEL).toBe('0')
   })
 
   it('pins an explicit truecolor downgrade target regardless of FORCE_COLOR', () => {
-    const env: NodeJS.ProcessEnv = { FORCE_COLOR: '3', CODEFLOW_TUI_COLOR: '256' }
+    const env: NodeJS.ProcessEnv = { FORCE_COLOR: '3', ORANGECODE_TUI_COLOR: '256' }
     expect(applyColorOverride(env)).toBe(2)
     expect(env.HERMES_TUI_LEVEL).toBe('2')
   })

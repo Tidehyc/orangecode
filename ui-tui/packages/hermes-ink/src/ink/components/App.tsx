@@ -56,7 +56,7 @@ import { TerminalSizeContext } from './TerminalSizeContext.js'
 
 // Platforms that support Unix-style process suspension (SIGSTOP/SIGCONT)
 const SUPPORTS_SUSPEND = false
-const CODEFLOW_HOME = process.env.CODEFLOW_HOME?.trim() || join(homedir(), '.codeflow')
+const ORANGECODE_HOME = process.env.ORANGECODE_HOME?.trim() || join(homedir(), '.orangecode')
 
 // After this many milliseconds of stdin silence, the next chunk triggers
 // a terminal mode re-assert (mouse tracking). Catches tmux detach→attach,
@@ -296,12 +296,12 @@ export default class App extends PureComponent<Props, State> {
         }
 
         // Diagnostic dump of terminal-capability detection state, guarded by
-        // CODEFLOW_TUI_DEBUG_TERMINFO=1. Useful when modifier+enter behavior
+        // ORANGECODE_TUI_DEBUG_TERMINFO=1. Useful when modifier+enter behavior
         // regresses on a new terminal/transport stack — set the env var,
-        // launch the TUI, then inspect $CODEFLOW_HOME/logs/tui-node-diag.log.
-        if (process.env.CODEFLOW_TUI_DEBUG_TERMINFO === '1') {
+        // launch the TUI, then inspect $ORANGECODE_HOME/logs/tui-node-diag.log.
+        if (process.env.ORANGECODE_TUI_DEBUG_TERMINFO === '1') {
           try {
-            const diagPath = join(CODEFLOW_HOME, 'logs', 'tui-node-diag.log')
+            const diagPath = join(ORANGECODE_HOME, 'logs', 'tui-node-diag.log')
             const line = JSON.stringify({
               ts: new Date().toISOString(),
               phase: 'raw-mode-enable',
@@ -357,9 +357,9 @@ export default class App extends PureComponent<Props, State> {
               logForDebugging('XTVERSION: no reply (terminal ignored query)')
             }
 
-            if (process.env.CODEFLOW_TUI_DEBUG_TERMINFO === '1') {
+            if (process.env.ORANGECODE_TUI_DEBUG_TERMINFO === '1') {
               try {
-                const diagPath = join(CODEFLOW_HOME, 'logs', 'tui-node-diag.log')
+                const diagPath = join(ORANGECODE_HOME, 'logs', 'tui-node-diag.log')
                 const line = JSON.stringify({
                   ts: new Date().toISOString(),
                   phase: 'xtversion-reply',

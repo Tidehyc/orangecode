@@ -19,8 +19,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from codeflow.evolver.orchestrator.scoring import TaskEval, prefer_rerun_measurement
-from codeflow.evolver.tree import git_ops
+from orangecode.evolver.orchestrator.scoring import TaskEval, prefer_rerun_measurement
+from orangecode.evolver.tree import git_ops
 
 from benchmarks.appworld.evolve import tasks as task_defs
 
@@ -205,7 +205,7 @@ def read_case_failures(out_dir: str | Path, task_ids: list[str]) -> dict[str, li
 
 
 def make_eval_fn(repo_root: str | Path, runs_root: str | Path, *, timeout: float = DEFAULT_TIMEOUT):
-    """Build the bench :class:`~codeflow.evolver.orchestrator.scoring.EvalFn`."""
+    """Build the bench :class:`~orangecode.evolver.orchestrator.scoring.EvalFn`."""
     repo_root = Path(repo_root)
     runs_root = Path(runs_root)
 

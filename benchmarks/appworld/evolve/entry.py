@@ -33,8 +33,8 @@ import os
 import sys
 from pathlib import Path
 
-from codeflow.evolver.launch.contract import BenchBundle, LaunchContext, validate_whitelist
-from codeflow.evolver.orchestrator.scoring import eval_with_infra_rerun
+from orangecode.evolver.launch.contract import BenchBundle, LaunchContext, validate_whitelist
+from orangecode.evolver.orchestrator.scoring import eval_with_infra_rerun
 
 from benchmarks.appworld.evolve import adapter as aw_adapter
 
@@ -140,13 +140,13 @@ def build(ctx: LaunchContext) -> BenchBundle:
         import contextlib
         import io
 
-        from codeflow.config.loader import load_config as _load_subject_config
+        from orangecode.config.loader import load_config as _load_subject_config
 
         with contextlib.redirect_stdout(io.StringIO()):
             _load_subject_config(config_path)
     except ValueError as exc:
         raise ValueError(
-            f"bench_config.config_path {config_path} is not a valid CodeFlow "
+            f"bench_config.config_path {config_path} is not a valid OrangeCode "
             f"runtime config: {exc}\nStart from docs/examples/subject_runtime.json"
         ) from exc
 
@@ -313,7 +313,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
             baseline_mode=bc.get("baseline_mode", "frozen"),
         )
 
-    from codeflow.evolver.tree.node import HarnessNode
+    from orangecode.evolver.tree.node import HarnessNode
 
     root_node = HarnessNode(
         node_id="C0",
@@ -330,7 +330,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
         def unseal(records: list[dict], orch) -> dict:
             import dataclasses
 
-            from codeflow.evolver.orchestrator.sealed.runner import unseal_retention
+            from orangecode.evolver.orchestrator.sealed.runner import unseal_retention
 
             from benchmarks.appworld.evolve.run import build_appworld_sealed_runner
 

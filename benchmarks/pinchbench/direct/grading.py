@@ -1,8 +1,8 @@
 """
-PinchBench Grading Engine - adapted for CodeFlow.
+PinchBench Grading Engine - adapted for OrangeCode.
 
 Supports automated (Python code), LLM judge, and hybrid grading.
-LLM judge uses CodeFlow's own provider (OpenRouter) instead of OpenClaw.
+LLM judge uses OrangeCode's own provider (OpenRouter) instead of OpenClaw.
 """
 
 from __future__ import annotations

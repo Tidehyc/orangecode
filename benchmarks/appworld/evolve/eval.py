@@ -14,17 +14,17 @@ from dataclasses import dataclass, field
 from difflib import unified_diff
 from pathlib import Path
 
-from codeflow.evolver.candidate_manifest import (
+from orangecode.evolver.candidate_manifest import (
     CandidateLabel,
     CandidateManifest,
     ManifestGateError,
     assert_manifest_gate,
     manifest_for_patch,
 )
-from codeflow.evolver.judge.schema import PatchWhere, PatchWhy
-from codeflow.evolver.tree import git_ops
-from codeflow.evolver.tree.git_ops import GitOpError
-from codeflow.evolver.tree.node import AppliedPatch, PatchComponent
+from orangecode.evolver.judge.schema import PatchWhere, PatchWhy
+from orangecode.evolver.tree import git_ops
+from orangecode.evolver.tree.git_ops import GitOpError
+from orangecode.evolver.tree.node import AppliedPatch, PatchComponent
 
 from benchmarks.appworld.evolve import adapter as aw_adapter
 
@@ -58,7 +58,7 @@ def _patch_where(label: CandidateLabel, paths: list[str]) -> PatchWhere:
     if label is CandidateLabel.skill:
         return PatchWhere.skill
     if label is CandidateLabel.prompt:
-        if all(path.startswith("codeflow/templates/") for path in paths):
+        if all(path.startswith("orangecode/templates/") for path in paths):
             return PatchWhere.system_prompt_template
         return PatchWhere.task_wrapper_prompt
     if label in {CandidateLabel.model_profile, CandidateLabel.route}:
@@ -73,9 +73,9 @@ def _patch_where(label: CandidateLabel, paths: list[str]) -> PatchWhere:
 
 
 def _candidate_label(paths: list[str]) -> CandidateLabel:
-    if paths and all(path.startswith("codeflow/memory_engine/skills/") for path in paths):
+    if paths and all(path.startswith("orangecode/memory_engine/skills/") for path in paths):
         return CandidateLabel.skill
-    if paths and all(path.startswith("codeflow/templates/") for path in paths):
+    if paths and all(path.startswith("orangecode/templates/") for path in paths):
         return CandidateLabel.prompt
     return CandidateLabel.runtime
 

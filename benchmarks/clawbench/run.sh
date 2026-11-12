@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CodeFlow 的 ClawBench 流式运行时执行器。
+# OrangeCode 的 ClawBench 流式运行时执行器。
 #
 # 用法：
 #   CLAW_BENCH_ROOT=/path/to/claw-bench ./benchmarks/clawbench/run.sh --limit 80

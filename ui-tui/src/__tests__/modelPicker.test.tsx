@@ -73,7 +73,7 @@ const oauthProvider: ModelOptionProvider = {
   needs_api_base: false,
   slug: 'oauthvendor',
   total_models: 0,
-  warning: 'run codeflow model to authenticate'
+  warning: 'run orangecode model to authenticate'
 }
 
 interface Harness {
@@ -178,7 +178,7 @@ describe('ModelPicker', () => {
 
     await h.type(DOWN)
     const providerFrame = h.frame()
-    expect(providerFrame).toContain('run codeflow model to authenticate')
+    expect(providerFrame).toContain('run orangecode model to authenticate')
 
     await h.type(ENTER)
 

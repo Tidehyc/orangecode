@@ -73,7 +73,7 @@ const usage: Usage = {
 }
 
 const sessionInfo: SessionInfo = {
-  cwd: '~/codeflow',
+  cwd: '~/orangecode',
   mcp_servers: [
     { connected: true, name: 'chrome-devtools', tools: 12, transport: 'stdio' },
     { connected: false, name: 'figma', tools: 0, transport: 'sse' }
@@ -85,7 +85,7 @@ const sessionInfo: SessionInfo = {
     cli: ['init', 'review', 'security-review'],
     figma: ['figma-use', 'figma-generate-design']
   },
-  system_prompt: 'You are CodeFlow, a general-purpose agent…',
+  system_prompt: 'You are OrangeCode, a general-purpose agent…',
   tools: {
     core_tools: ['read', 'write', 'edit', 'bash'],
     search_tools: ['grep', 'glob']
@@ -149,7 +149,7 @@ function AppChromePage() {
           bgCount={1}
           busy={false}
           cols={cols}
-          cwdLabel="~/codeflow"
+          cwdLabel="~/orangecode"
           model="anthropic/claude-opus-4-8"
           modelReasoningEffort="high"
           sessionStartedAt={now - 125_000}
@@ -166,7 +166,7 @@ function AppChromePage() {
           bgCount={0}
           busy
           cols={cols}
-          cwdLabel="~/codeflow"
+          cwdLabel="~/orangecode"
           model="anthropic/claude-opus-4-8"
           sessionStartedAt={now - 125_000}
           showCost={false}

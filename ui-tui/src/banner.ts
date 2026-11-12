@@ -46,7 +46,7 @@ export function parseRichMarkup(markup: string): Line[] {
   return lines
 }
 
-const CODEFLOW_WORD_ART = [
+const ORANGECODE_WORD_ART = [
   '██████╗ ██╗ ██████╗  ██████╗ ',
   '██╔══██╗██║██╔════╝ ██╔═══██╗',
   '██████╔╝██║██║      ██║   ██║',
@@ -64,19 +64,19 @@ const AGENT_WORD_ART = [
   '╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝   '
 ] as const
 
-const CODEFLOW_LOGO_ART = CODEFLOW_WORD_ART.map((row, index) => `${row}   ${AGENT_WORD_ART[index]}`)
+const ORANGECODE_LOGO_ART = ORANGECODE_WORD_ART.map((row, index) => `${row}   ${AGENT_WORD_ART[index]}`)
 
-const CODEFLOW_HERO_ART = [
+const ORANGECODE_HERO_ART = [
   '         ╱╲         ',
   '        ╱  ╲        ',
   '       ╱ ◆  ╲       ',
   '      ╱      ╲      ',
-  '     ╱  CODEFLOW  ╲     ',
+  '     ╱ ORANGECODE ╲     ',
   '    ╰──────────╯    '
 ] as const
 
-export const CODEFLOW_LOGO_WIDTH = CODEFLOW_LOGO_ART.reduce((width, row) => Math.max(width, [...row].length), 0)
-export const CODEFLOW_HERO_WIDTH = CODEFLOW_HERO_ART.reduce((width, row) => Math.max(width, [...row].length), 0)
+export const ORANGECODE_LOGO_WIDTH = ORANGECODE_LOGO_ART.reduce((width, row) => Math.max(width, [...row].length), 0)
+export const ORANGECODE_HERO_WIDTH = ORANGECODE_HERO_ART.reduce((width, row) => Math.max(width, [...row].length), 0)
 
 // 标题中每个渐变色覆盖的字符画行数（垂直色带）。
 const LOGO_ROWS_PER_BAND = 2
@@ -88,25 +88,25 @@ const bandColor = (ramp: readonly string[], row: number) =>
 
 // 标题字标从上到下每 LOGO_ROWS_PER_BAND 行使用一种渐变色，取前
 // ceil(rows / band) 个渐变项。
-export const codeflowLogo = (ramp: readonly string[], customLogo?: string): Line[] =>
-  customLogo ? parseRichMarkup(customLogo) : CODEFLOW_LOGO_ART.map((text, i) => [bandColor(ramp, i), text])
+export const orangeCodeLogo = (ramp: readonly string[], customLogo?: string): Line[] =>
+  customLogo ? parseRichMarkup(customLogo) : ORANGECODE_LOGO_ART.map((text, i) => [bandColor(ramp, i), text])
 
-// “CODEFLOW”字标的宽度，也是短版所需的最小宽度。
-export const CODEFLOW_WORD_WIDTH = CODEFLOW_WORD_ART.reduce((width, row) => Math.max(width, [...row].length), 0)
+// “ORANGECODE”字标的宽度，也是短版所需的最小宽度。
+export const ORANGECODE_WORD_WIDTH = ORANGECODE_WORD_ART.reduce((width, row) => Math.max(width, [...row].length), 0)
 
-// 只渲染“CODEFLOW”字标，并采用从上到下的渐变。
-export const codeflowLogoWord = (ramp: readonly string[]): Line[] =>
-  CODEFLOW_WORD_ART.map((text, i) => [bandColor(ramp, i), text])
+// 只渲染“ORANGECODE”字标，并采用从上到下的渐变。
+export const orangeCodeLogoWord = (ramp: readonly string[]): Line[] =>
+  ORANGECODE_WORD_ART.map((text, i) => [bandColor(ramp, i), text])
 
-// CodeFlow 主图使用由 HERO_BANDS 个列色带构成的横向渐变。颜色从右向左加深，
+// OrangeCode 主图使用由 HERO_BANDS 个列色带构成的横向渐变。颜色从右向左加深，
 // 使高亮色 ramp[0] 位于右侧，最深色 ramp[HERO_BANDS-1] 位于左侧。
 // 每行返回一组用于行内渲染的 `[color, segment]` 对。
-export const codeflowHero = (ramp: readonly string[], customHero?: string): Line[][] => {
+export const orangeCodeHero = (ramp: readonly string[], customHero?: string): Line[][] => {
   if (customHero) {
     return parseRichMarkup(customHero).map(line => [line])
   }
 
-  return CODEFLOW_HERO_ART.map(row => {
+  return ORANGECODE_HERO_ART.map(row => {
     const chars = [...row]
     const bandWidth = Math.ceil(chars.length / HERO_BANDS)
     const segments: Line[] = []

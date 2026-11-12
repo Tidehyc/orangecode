@@ -22,7 +22,7 @@ export interface RunExternalSetupOptions {
 export async function runExternalSetup({ args, ctx, done, launcher, suspend }: RunExternalSetupOptions) {
   const { gateway, session, transcript } = ctx
 
-  transcript.sys(`launching \`codeflow ${args.join(' ')}\`…`)
+  transcript.sys(`launching \`orangecode ${args.join(' ')}\`…`)
   patchUiState({ status: 'setup running…' })
 
   let result: LaunchResult = { code: null }
@@ -32,14 +32,14 @@ export async function runExternalSetup({ args, ctx, done, launcher, suspend }: R
   })
 
   if (result.error) {
-    transcript.sys(`error launching codeflow: ${result.error}`)
+    transcript.sys(`error launching orangecode: ${result.error}`)
     patchUiState({ status: 'setup required' })
 
     return
   }
 
   if (result.code !== 0) {
-    transcript.sys(`codeflow ${args[0]} exited with code ${result.code}`)
+    transcript.sys(`orangecode ${args[0]} exited with code ${result.code}`)
     patchUiState({ status: 'setup required' })
 
     return

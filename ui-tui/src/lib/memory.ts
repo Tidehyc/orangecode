@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { getHeapSnapshot, getHeapSpaceStatistics, getHeapStatistics } from 'node:v8'
 
-import { getCodeFlowHome } from '../config/paths.js'
+import { getOrangeCodeHome } from '../config/paths.js'
 
 export type MemoryTrigger = 'auto-critical' | 'auto-high' | 'manual'
 
@@ -151,11 +151,11 @@ export async function performHeapDump(trigger: MemoryTrigger = 'manual'): Promis
     // 先写诊断信息，因为序列化超大堆快照可能崩溃；发生这种情况时，JSON 边车
     // 文件是最具可操作性的产物。
     const diagnostics = await captureMemoryDiagnostics(trigger)
-    const dir = process.env.CODEFLOW_HEAPDUMP_DIR?.trim() || join(getCodeFlowHome(), 'heapdumps')
+    const dir = process.env.ORANGECODE_HEAPDUMP_DIR?.trim() || join(getOrangeCodeHome(), 'heapdumps')
 
     await mkdir(dir, { recursive: true })
 
-    const base = `codeflow-${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}-${trigger}`
+    const base = `orangecode-${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}-${trigger}`
     const heapPath = join(dir, `${base}.heapsnapshot`)
     const diagPath = join(dir, `${base}.diagnostics.json`)
 

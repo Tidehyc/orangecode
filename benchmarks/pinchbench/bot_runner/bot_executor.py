@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # 默认 OpenRouter 配置。
 DEFAULT_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-DEFAULT_MODEL = os.environ.get("CODEFLOW_BENCH_MODEL", "anthropic/claude-sonnet-4")
+DEFAULT_MODEL = os.environ.get("ORANGECODE_BENCH_MODEL", "anthropic/claude-sonnet-4")
 
 CHANNEL_NAME = "benchmark"
 
@@ -60,7 +60,7 @@ def _session_to_openclaw_transcript(
     session_messages: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     """
-    Convert CodeFlow session messages (OpenAI format) to PinchBench/OpenClaw
+    Convert OrangeCode session messages (OpenAI format) to PinchBench/OpenClaw
     transcript format so that existing grading functions work unchanged.
     """
     transcript: List[Dict[str, Any]] = []
@@ -130,8 +130,8 @@ def _session_to_openclaw_transcript(
 
 def _make_openrouter_provider(model: str, api_key: str):
     """Create an OpenRouter LLM provider via LiteLLM."""
-    from codeflow.providers.base import GenerationSettings
-    from codeflow.providers.litellm_provider import LiteLLMProvider
+    from orangecode.providers.base import GenerationSettings
+    from orangecode.providers.litellm_provider import LiteLLMProvider
 
     provider = LiteLLMProvider(
         api_key=api_key,
@@ -162,10 +162,10 @@ async def execute_task(
     Returns a result dict compatible with PinchBench grading:
         task_id, status, transcript, workspace, execution_time, timed_out
     """
-    from codeflow.agent.loop import AgentLoop
-    from codeflow.config.schema import ExecToolConfig
-    from codeflow.session.manager import SessionManager
-    from codeflow.spine import ChatType, Origin, Source, Text, TurnRequest
+    from orangecode.agent.loop import AgentLoop
+    from orangecode.config.schema import ExecToolConfig
+    from orangecode.session.manager import SessionManager
+    from orangecode.spine import ChatType, Origin, Source, Text, TurnRequest
 
     # 准备工作区。
     task_workspace = prepare_workspace(task, workspace, assets_dir)
@@ -179,9 +179,9 @@ async def execute_task(
     # 加载 skill_forge 配置，使机器人基准运行遵守 injection_mode、inject_max、
     # mass_library_db 等设置。否则 AgentLoop 收到 skill_forge_config=None，
     # SkillService 会回退到数据类默认值。
-    from codeflow.config.codeflow import load_codeflow_config
+    from orangecode.config.orangecode import load_orangecode_config
 
-    _ec_cfg = load_codeflow_config()
+    _ec_cfg = load_orangecode_config()
     skill_forge_cfg = getattr(_ec_cfg, "skill_forge", None)
 
     agent = AgentLoop(
@@ -196,7 +196,7 @@ async def execute_task(
         skill_forge_config=skill_forge_cfg,
         runtime_config=getattr(_ec_cfg, "runtime", None),
         # 基准是非交互式批量运行，因此禁用 Bug2 的逐轮 shadow-git 检查点；既没有
-        # 可注入恢复信息的渠道，也不希望任务工作区出现 ``.codeflow/shadow.git``。
+        # 可注入恢复信息的渠道，也不希望任务工作区出现 ``.orangecode/shadow.git``。
         interactive=False,
     )
 

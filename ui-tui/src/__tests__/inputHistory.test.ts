@@ -21,12 +21,12 @@ interface HistoryModule {
 }
 
 let history: HistoryModule
-let codeflowDir: string
+let orangeCodeDir: string
 
 beforeAll(async () => {
-  codeflowDir = mkdtempSync(join(tmpdir(), 'codeflow-hist-'))
+  orangeCodeDir = mkdtempSync(join(tmpdir(), 'orangecode-hist-'))
 
-  vi.stubEnv('CODEFLOW_HOME', codeflowDir)
+  vi.stubEnv('ORANGECODE_HOME', orangeCodeDir)
   history = await import('../lib/history.js')
 })
 
@@ -51,7 +51,7 @@ describe('input history store (backs cycleHistory)', () => {
     expect(entries.at(-1)).toBe('third command')
     // ……再走到索引 0 的最旧项。
     expect(entries[0]).toBe('first command')
-    expect(existsSync(join(codeflowDir, '.codeflow_history'))).toBe(true)
+    expect(existsSync(join(orangeCodeDir, '.orangecode_history'))).toBe(true)
   })
 
   it('deduplicates a repeat of the most recent entry', () => {

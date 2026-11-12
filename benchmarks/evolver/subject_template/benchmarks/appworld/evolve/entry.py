@@ -23,11 +23,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-from codeflow.evolver.launch.contract import BenchBundle, LaunchContext, validate_whitelist
-from codeflow.evolver.orchestrator.gates.policy import make_frozen_baseline
-from codeflow.evolver.orchestrator.gates.strategies import FocusedFisherGate, confirm_job_name
-from codeflow.evolver.orchestrator.scoring import eval_with_infra_rerun, with_infra_rerun
-from codeflow.evolver.tree.node import HarnessNode
+from orangecode.evolver.launch.contract import BenchBundle, LaunchContext, validate_whitelist
+from orangecode.evolver.orchestrator.gates.policy import make_frozen_baseline
+from orangecode.evolver.orchestrator.gates.strategies import FocusedFisherGate, confirm_job_name
+from orangecode.evolver.orchestrator.scoring import eval_with_infra_rerun, with_infra_rerun
+from orangecode.evolver.tree.node import HarnessNode
 
 from benchmarks.appworld.evolve import adapter
 from benchmarks.appworld.evolve import tasks as task_defs
@@ -51,7 +51,7 @@ def _task_subset(bc: dict, key: str, default: list[str]) -> list[str]:
 def _make_precheck(repo_root: Path, base_sha: str, timeout: float):
     def precheck() -> None:
         try:
-            from codeflow.evolver.tree import git_ops
+            from orangecode.evolver.tree import git_ops
 
             source = git_ops.read_file_at(repo_root, base_sha, adapter.MODULE_PATH)
         except Exception as exc:  # noqa: BLE001 - 任意读取失败都表示目标不可用
@@ -139,7 +139,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
         eval_with_infra_rerun(raw_eval, root_node, train_ids, k_confirm, van_exp)
 
     def read_stability():
-        from codeflow.evolver.analysis.stability_bucket import TaskStability, _bucket_for
+        from orangecode.evolver.analysis.stability_bucket import TaskStability, _bucket_for
 
         kept = adapter.read_kept_out_dir(vanilla_out_dir, expected_attempts=k_confirm)
         return {
@@ -159,11 +159,11 @@ def build(ctx: LaunchContext) -> BenchBundle:
         return read_stability()
 
     def anchor(affinity=None):
-        from codeflow.evolver.scheduler.anchor_selection import simple_anchor
+        from orangecode.evolver.scheduler.anchor_selection import simple_anchor
 
         return simple_anchor(cold_start(), cull_sigma_mult=spec.funnel.anchor.cull_sigma_mult)
 
-    from codeflow.evolver.orchestrator.scoring import EvalBackend
+    from orangecode.evolver.orchestrator.scoring import EvalBackend
 
     backend = EvalBackend(
         train_task_ids=list(train_ids),
@@ -190,7 +190,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
         return grouped
 
     def build_orchestrator():
-        from codeflow.evolver.orchestrator.production import build_evolution_orchestrator
+        from orangecode.evolver.orchestrator.production import build_evolution_orchestrator
 
         from benchmarks.appworld.evolve.candidate import files_of, prepare_candidate_manifest
         from benchmarks.appworld.evolve.designer import make_design_fn
@@ -268,7 +268,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
         def unseal(records: list[dict], orch) -> dict:
             import dataclasses
 
-            from codeflow.evolver.orchestrator.sealed.runner import (
+            from orangecode.evolver.orchestrator.sealed.runner import (
                 SealedTestRunner,
                 unseal_retention,
             )
