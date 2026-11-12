@@ -15,6 +15,16 @@ INTERNAL_ERROR = -32603
 RpcHandler = Callable[[dict[str, Any]], Awaitable[dict[str, Any]]]
 
 
+class RpcMethodError(Exception):
+    """允许 RPC 处理器返回指定规范错误码的业务异常。"""
+
+    def __init__(self, code: int, message: str, data: Any = None) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.data = data
+
+
 class RpcDispatcher:
     """JSON-RPC 2.0 请求路由与错误隔离中枢。"""
 
@@ -67,6 +77,15 @@ class RpcDispatcher:
                 "jsonrpc": "2.0",
                 "id": req_id,
                 "result": result,
+            }
+        except RpcMethodError as err:
+            err_obj: dict[str, Any] = {"code": err.code, "message": err.message}
+            if err.data is not None:
+                err_obj["data"] = err.data
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "error": err_obj,
             }
         except Exception as err:
             logger.exception(f"RPC method '{method}' failed: {err}")

@@ -171,17 +171,46 @@ function SpawnHud({ t }: { t: Theme }) {
   )
 }
 
+function fmtSessionAge(ms: number) {
+  const totalMinutes = Math.max(0, Math.floor(ms / 60_000))
+
+  if (totalMinutes < 1) {
+    return '<1m'
+  }
+
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+
+  return h > 0 ? `${h}h ${m}m` : `${m}m`
+}
+
 function SessionDuration({ startedAt }: { startedAt: number }) {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
-    setNow(Date.now())
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    let timer: null | ReturnType<typeof setTimeout> = null
 
-    return () => clearInterval(id)
+    const schedule = () => {
+      const elapsed = Math.max(0, Date.now() - startedAt)
+      const waitMs = Math.max(1000, 60_000 - (elapsed % 60_000))
+
+      timer = setTimeout(() => {
+        setNow(Date.now())
+        schedule()
+      }, waitMs)
+    }
+
+    setNow(Date.now())
+    schedule()
+
+    return () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+    }
   }, [startedAt])
 
-  return fmtDuration(now - startedAt)
+  return fmtSessionAge(now - startedAt)
 }
 
 const effortLabel = (effort?: string) => {
@@ -255,7 +284,8 @@ export function StatusRule({
       : ''
   const modelMeta = modelLabel(model, modelReasoningEffort, modelFast)
 
-  const leftWidth = Math.max(12, cols - cwdLabel.length - 3)
+  const cwdBudget = Math.min(cwdLabel.length, Math.max(14, Math.floor(cols * 0.36)))
+  const leftWidth = Math.max(12, cols - cwdBudget - 3)
 
   return (
     <Box height={1}>
@@ -297,7 +327,11 @@ export function StatusRule({
       </Box>
 
       <Text color={t.color.border}> · </Text>
-      <Text color={t.color.label}>{cwdLabel}</Text>
+      <Box flexShrink={1} width={cwdBudget}>
+        <Text color={t.color.label} wrap="truncate-middle">
+          {cwdLabel}
+        </Text>
+      </Box>
     </Box>
   )
 }

@@ -10,20 +10,8 @@ from rich.panel import Panel
 from rich.table import Table
 
 from orangecode import __version__
-from orangecode.agent.loop import AgentLoop
-from orangecode.agent.tools import BashTool, ReadFileTool, ToolRegistry, WriteFileTool
 from orangecode.config import settings
-from orangecode.providers import LiteLLMProvider
 from orangecode.session.manager import SessionManager
-from orangecode.spine.events import (
-    ToolEvent,
-    ToolPhase,
-    TurnEnded,
-    TurnEvent,
-    TurnStarted,
-)
-from orangecode.spine.scheduler import SpineScheduler
-from orangecode.spine.turn import TurnRequest
 
 app = typer.Typer(
     name="orangecode",
@@ -86,36 +74,47 @@ def status_cmd():
 @app.command("tui")
 def tui_cmd(
     check: bool = typer.Option(False, "--check", help="仅烟雾测试 Node.js 与 TUI 依赖并退出"),
-    dev: bool = typer.Option(True, "--dev", help="从 TypeScript 源码启动"),
+    dev: bool = typer.Option(False, "--dev/--no-dev", help="通过 tsx 从 TypeScript 源码实时启动"),
 ):
-    """启动 Node.js + React + Ink 原生终端 UI。"""
+    """启动 Node.js + React + Ink 原生终端 UI（通过本地回环 JSON-RPC 桥接 Python Spine）。"""
+    import os
     import shutil
     import subprocess
-    from pathlib import Path
+
+    from orangecode.tui_rpc.host import launch_tui, resolve_tui_dir
 
     node_bin = shutil.which("node")
     if not node_bin:
         console.print("[bold red]Error:[/bold red] Node.js runtime not found in PATH. Node >= 22 required.")
         raise typer.Exit(1)
 
-    tui_dir = Path.cwd() / "ui-tui"
-    if not tui_dir.is_dir():
-        tui_dir = Path(__file__).resolve().parent.parent.parent.parent / "ui-tui"
-
-    if not tui_dir.is_dir():
-        console.print(f"[bold red]Error:[/bold red] ui-tui directory not found at {tui_dir}")
+    tui_dir = resolve_tui_dir()
+    if tui_dir is None:
+        console.print("[bold red]Error:[/bold red] ui-tui directory not found.")
         raise typer.Exit(1)
 
+    tsx_bin = tui_dir / "node_modules" / ".bin" / "tsx"
     if check:
         console.print(f"[green]✓[/green] Found Node.js: {node_bin}")
         console.print(f"[green]✓[/green] Found TUI source at: {tui_dir}")
+        if not tsx_bin.is_file():
+            console.print(f"[bold red]Error:[/bold red] tsx not found at {tsx_bin}. Run `npm ci` in {tui_dir}.")
+            raise typer.Exit(1)
+        env = os.environ.copy()
+        env["ORANGECODE_TUI_CHECK"] = "1"
+        res = subprocess.run([str(tsx_bin), "src/entry.tsx"], cwd=str(tui_dir), env=env)
+        if res.returncode != 0:
+            raise typer.Exit(res.returncode)
+        console.print("[green]✓[/green] TUI import chain & TTY check passed.")
         return
 
-    console.print("[cyan]Launching OrangeCode Native Terminal UI...[/cyan]")
     try:
-        subprocess.run(["npm", "run", "dev"], cwd=str(tui_dir))
-    except KeyboardInterrupt:
-        console.print("\n[dim]TUI closed.[/dim]")
+        rc = launch_tui(tui_dir, dev=dev)
+    except RuntimeError as err:
+        console.print(f"[bold red]Error:[/bold red] {err}")
+        raise typer.Exit(1)
+    if rc != 0:
+        raise typer.Exit(rc)
 
 
 @app.command("doctor")
@@ -182,6 +181,13 @@ def run_agent_cmd(
     max_iterations: Annotated[int, typer.Option("--max-iter", help="最大迭代思考轮次")] = 20,
 ):
     """启动 Agent Loop 执行单次复杂任务（由 Spine 调度管理）。"""
+    from orangecode.agent.loop import AgentLoop
+    from orangecode.agent.tools import BashTool, ReadFileTool, ToolRegistry, WriteFileTool
+    from orangecode.providers import LiteLLMProvider
+    from orangecode.spine.events import ToolEvent, ToolPhase, TurnEvent
+    from orangecode.spine.scheduler import SpineScheduler
+    from orangecode.spine.turn import TurnRequest
+
     chosen_model = model or settings.default_model
     chosen_api_key = api_key or settings.api_key
     chosen_api_base = api_base or settings.api_base
@@ -249,6 +255,13 @@ def chat_cmd(
     model: Annotated[str | None, typer.Option("--model", "-m", help="指定调用的模型名称")] = None,
 ):
     """启动交互式多轮对话终端（REPL）。"""
+    from orangecode.agent.loop import AgentLoop
+    from orangecode.agent.tools import BashTool, ReadFileTool, ToolRegistry, WriteFileTool
+    from orangecode.providers import LiteLLMProvider
+    from orangecode.spine.events import ToolEvent, ToolPhase, TurnEnded, TurnEvent, TurnStarted
+    from orangecode.spine.scheduler import SpineScheduler
+    from orangecode.spine.turn import TurnRequest
+
     chosen_model = model or settings.default_model
     console.print(Panel(f"[bold green]OrangeCode Interactive Chat[/bold green]\nSession ID: [cyan]{conversation_id}[/cyan]\nModel: [yellow]{chosen_model}[/yellow]\nType 'exit' or 'quit' to end chat.", border_style="green"))
 
@@ -463,9 +476,13 @@ def start_gateway_cmd(
     model: Annotated[str | None, typer.Option("--model", "-m", help="指定主模型")] = None,
 ):
     """启动常驻后台 Gateway：集成 Spine 调度总线、Cron 定时引擎与多平台消息中枢。"""
+    from orangecode.agent.loop import AgentLoop
     from orangecode.agent.tools import BashTool, ReadFileTool, ToolRegistry, WriteFileTool
     from orangecode.channels import ChannelManager, FeishuChannel, WeComChannel
     from orangecode.proactive_engine.cron import CronService
+    from orangecode.providers import LiteLLMProvider
+    from orangecode.spine.events import TurnEvent
+    from orangecode.spine.scheduler import SpineScheduler
 
     chosen_model = model or settings.default_model
     console.print(Panel(f"[bold green]OrangeCode Unified Gateway Daemon[/bold green]\nModel: [yellow]{chosen_model}[/yellow]\nPress Ctrl+C to terminate.", border_style="cyan"))

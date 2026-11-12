@@ -87,6 +87,7 @@ export function ArtRows({ rows }: { rows: [string, string][][] }) {
 
 const PROVIDER_LABELS: Record<string, string> = {
   anthropic: 'Anthropic',
+  deepseek: 'DeepSeek',
   openai: 'OpenAI',
   openrouter: 'OpenRouter',
   qwen: 'Qwen',
@@ -127,7 +128,7 @@ export function Branding({ maxCols, t }: { maxCols?: number; t?: Theme } = {}) {
   return (
     <Box flexDirection="column" marginBottom={1}>
       {showWordmark && <ArtLines lines={logoLines} />}
-      <Box marginTop={showWordmark ? 1 : 0}>
+      <Box>
         <Text color={theme.color.accent}>{theme.brand.icon} </Text>
         <Text bold color={theme.color.primary}>
           Orange

@@ -139,6 +139,14 @@ const DEEP_ERASE_THEN_HOME_PATCH = Object.freeze({
   content: ERASE_SCREEN + ERASE_SCROLLBACK + CURSOR_HOME
 })
 
+const CURSOR_HIDE_PATCH = Object.freeze({
+  type: 'cursorHide' as const
+})
+
+const CURSOR_SHOW_PATCH = Object.freeze({
+  type: 'cursorShow' as const
+})
+
 // Cached per-Ink-instance, invalidated on resize. frame.cursor.y for
 // alt-screen is always terminalRows - 1 (renderer.ts).
 function makeAltScreenParkPatch(terminalRows: number) {
@@ -869,43 +877,6 @@ export default class Ink {
     const optimizeMs = performance.now() - tOptimize
     const hasDiff = optimized.length > 0
 
-    if (this.altScreenActive && hasDiff) {
-      // Prepend CSI H to anchor the physical cursor to (0,0) so
-      // log-update's relative moves compute from a known spot (self-healing
-      // against out-of-band cursor drift, see the ALT_SCREEN_ANCHOR_CURSOR
-      // comment above). Append CSI row;1 H to park the cursor at the bottom
-      // row (where the prompt input is) — without this, the cursor ends
-      // wherever the last diff write landed (a different row every frame),
-      // making iTerm2's cursor guide flicker as it chases the cursor.
-      // BSU/ESU protects content atomicity but iTerm2's guide tracks cursor
-      // position independently. Parking at bottom (not 0,0) keeps the guide
-      // where the user's attention is.
-      //
-      // After resize, prepend a clear too. The diff only writes cells
-      // that changed; cells where new=blank and prev-buffer=blank get skipped
-      // — but the physical terminal still has stale content there (shorter
-      // lines at new width leave old-width text tails visible). Apple Terminal
-      // can also preserve alt-screen reflow artifacts in scrollback during
-      // resize, so it gets CSI 3J in this one recovery path. When BSU/ESU is
-      // supported, the clear+paint lands atomically; otherwise the final state
-      // is still healed even if the repaint is visible.
-      if (this.needsEraseBeforePaint) {
-        this.needsEraseBeforePaint = false
-        optimized.unshift(needsAltScreenResizeScrollbackClear() ? DEEP_ERASE_THEN_HOME_PATCH : ERASE_THEN_HOME_PATCH)
-      } else {
-        optimized.unshift(CURSOR_HOME_PATCH)
-      }
-
-      optimized.push(this.altScreenParkPatch)
-    }
-
-    // Native cursor positioning: park the terminal cursor at the declared
-    // position so IME preedit text renders inline and screen readers /
-    // magnifiers can follow the input. nodeCache holds the absolute screen
-    // rect populated by renderNodeToOutput this frame (including scrollTop
-    // translation) — if the declared node didn't render (stale declaration
-    // after remount, or scrolled out of view), it won't be in the cache
-    // and no move is emitted.
     const decl = this.cursorDeclaration
     const rect = decl !== null ? nodeCache.get(decl.node) : undefined
 
@@ -922,7 +893,41 @@ export default class Ink {
     // Preserve the empty-diff zero-write fast path: skip all cursor writes
     // when nothing rendered AND the park target is unchanged.
     const targetMoved = target !== null && (parked === null || parked.x !== target.x || parked.y !== target.y)
+    const isAltTTY = this.altScreenActive && Boolean(this.options.stdout.isTTY)
 
+    if (this.altScreenActive && hasDiff) {
+      // Prepend CSI H to anchor the physical cursor to (0,0) so
+      // log-update's relative moves compute from a known spot (self-healing
+      // against out-of-band cursor drift, see the ALT_SCREEN_ANCHOR_CURSOR
+      // comment above). Append CSI row;1 H to park the cursor at the bottom
+      // row only when no declared input cursor will immediately take over —
+      // emitting (rows,1) right before the declared cursor position adds an
+      // extra visible jump. Wrap diff writes in DECTCEM (?25l/?25h) on TTYs
+      // so terminals without DEC 2026 (tmux, SSH, VTE, ConPTY) and cursor
+      // guides never show the cursor teleporting through (0,0) and dirty rows.
+      if (this.needsEraseBeforePaint) {
+        this.needsEraseBeforePaint = false
+        optimized.unshift(needsAltScreenResizeScrollbackClear() ? DEEP_ERASE_THEN_HOME_PATCH : ERASE_THEN_HOME_PATCH)
+      } else {
+        optimized.unshift(CURSOR_HOME_PATCH)
+      }
+
+      if (isAltTTY) {
+        optimized.unshift(CURSOR_HIDE_PATCH)
+      }
+
+      if (target === null) {
+        optimized.push(this.altScreenParkPatch)
+      }
+    }
+
+    // Native cursor positioning: park the terminal cursor at the declared
+    // position so IME preedit text renders inline and screen readers /
+    // magnifiers can follow the input. nodeCache holds the absolute screen
+    // rect populated by renderNodeToOutput this frame (including scrollTop
+    // translation) — if the declared node didn't render (stale declaration
+    // after remount, or scrolled out of view), it won't be in the cache
+    // and no move is emitted.
     if (hasDiff || targetMoved || (target === null && parked !== null)) {
       // Main-screen preamble: log-update's relative moves assume the
       // physical cursor is at prevFrame.cursor. If last frame parked it
@@ -943,13 +948,16 @@ export default class Ink {
       if (target !== null) {
         if (this.altScreenActive) {
           // Absolute CUP (1-indexed); next frame's CSI H resets regardless.
-          // Emitted after altScreenParkPatch so the declared position wins.
           const row = Math.min(Math.max(target.y + 1, 1), terminalRows)
           const col = Math.min(Math.max(target.x + 1, 1), terminalWidth)
           optimized.push({
             type: 'stdout',
             content: cursorPosition(row, col)
           })
+
+          if (isAltTTY && (hasDiff || parked === null)) {
+            optimized.push(CURSOR_SHOW_PATCH)
+          }
         } else {
           // After the diff (or preamble), cursor is at frame.cursor. If no
           // diff AND previously parked, it's still at the old park position
@@ -982,7 +990,11 @@ export default class Ink {
         // wrong spot. The preamble above handles hasDiff; this handles
         // !hasDiff (e.g. accessibility mode where blur doesn't change
         // renderedValue since invert is identity).
-        if (parked !== null && !this.altScreenActive && !hasDiff) {
+        if (this.altScreenActive) {
+          if (isAltTTY && !hasDiff && parked !== null) {
+            optimized.push(CURSOR_HIDE_PATCH)
+          }
+        } else if (parked !== null && !hasDiff) {
           const rdx = frame.cursor.x - parked.x
           const rdy = frame.cursor.y - parked.y
 

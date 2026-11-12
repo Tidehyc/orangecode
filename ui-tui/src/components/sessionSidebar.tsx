@@ -115,7 +115,7 @@ export const SessionSidebar = memo(function SessionSidebar({
       {items.length > MAX_VISIBLE && <Text color={t.color.muted}>+{items.length - MAX_VISIBLE} more</Text>}
 
       <Box flexGrow={1} />
-      {switchBlocked ? (
+      {turnBusy ? (
         <Text color={t.color.label}>wait for turn to finish</Text>
       ) : (
         <>

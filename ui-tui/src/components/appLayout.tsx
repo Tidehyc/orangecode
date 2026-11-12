@@ -102,11 +102,11 @@ const TranscriptPane = memo(function TranscriptPane({
           {transcript.virtualRows.slice(transcript.virtualHistory.start, transcript.virtualHistory.end).map(row => (
             <Box flexDirection="column" key={row.key} ref={transcript.virtualHistory.measureRef(row.key)}>
               {row.msg.kind === 'intro' ? (
-                <Box flexDirection="column" paddingTop={1}>
+                <Box flexDirection="column">
                   {row.msg.info ? (
                     <>
                       {!ui.compact && <Banner maxCols={composer.cols} t={ui.theme} />}
-                      <SessionPanel info={row.msg.info} sid={ui.sid} t={ui.theme} />
+                      <SessionPanel info={row.msg.info} maxCols={composer.cols} sid={ui.sid} t={ui.theme} />
                     </>
                   ) : (
                     <StartupLoader t={ui.theme} />
@@ -414,7 +414,7 @@ const StatusRulePane = memo(function StatusRulePane({
   }
 
   return (
-    <Box marginTop={at === 'top' ? 1 : 0}>
+    <Box>
       <StatusRule
         bgCount={ui.bgTasks.size}
         busy={ui.busy}
