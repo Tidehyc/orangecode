@@ -1,13 +1,13 @@
-# OrangeCode 1:1 完整复刻技术蓝图与功能对齐清单
-> **基准版本**：`CodeFlow-harness` (0.1.7)
+# OrangeCode 架构演进与核心能力规划蓝图
+> **参考架构**：`CodeFlow-harness` (0.1.7)
 > **目标工程**：`orangecode`
-> **目标要求**：**1:1 功能全量对齐、架构一致、严密验证、零功能遗漏**
+> **建设目标**：**核心能力看齐、架构精简重构、接口清晰演进、测试体系完善**
 
 ---
 
 ## 目录
-1. [总体规模与对齐现状审计](#1-总体规模与对齐现状审计)
-2. [22 个子系统 1:1 详细功能矩阵与契约规范](#2-22-个子系统-11-详细功能矩阵与契约规范)
+1. [总体规模与演进对比概览](#1-总体规模与演进对比概览)
+2. [22 个子系统核心能力矩阵与设计契约](#2-22-个子系统核心能力矩阵与设计契约)
    - 2.1 [Spine 并发调度与多会话管道 (`spine`)](#21-spine-并发调度与多会话管道-spine)
    - 2.2 [Agent 运行时、子智能体与高级工具链 (`agent`)](#22-agent-运行时子智能体与高级工具链-agent)
    - 2.3 [Context Engine 分层上下文治理与装配 (`context_engine`)](#23-context-engine-分层上下文治理与装配-context_engine)
@@ -30,45 +30,45 @@
    - 2.20 [Plugin 插件生命周期与发现机制 (`plugin`)](#220-plugin-插件生命周期与发现机制-plugin)
    - 2.21 [Benchmarks 标准基准评测套件 (`benchmarks`)](#221-benchmarks-标准基准评测套件-benchmarks)
    - 2.22 [Templates & Onboarding 引导模板与契约文档](#222-templates--onboarding-引导模板与契约文档)
-3. [1:1 全量复刻阶段实施里程碑](#3-11-全量复刻阶段实施里程碑)
-4. [质量验收与对齐度校验契约](#4-质量验收与对齐度校验契约)
+3. [分阶段演进实施里程碑](#3-分阶段演进实施里程碑)
+4. [质量验收与工程校验准则](#4-质量验收与工程校验准则)
 
 ---
 
-## 1. 总体规模与对齐现状审计
+## 1. 总体规模与演进对比概览
 
-原项目 `CodeFlow-harness` 包含 **70,436 行 Python 代码**，外加由 Node.js 22、React、Ink 构建的原生 TUI 客户端以及 6 个 Benchmark 评测包。
+参考架构 `CodeFlow-harness` 包含 **70,436 行 Python 代码**，外加由 Node.js 22、React、Ink 构建的原生 TUI 客户端以及 6 个 Benchmark 评测包。`OrangeCode` 在吸收其核心系统设计的同时，针对模块化内聚、冗余消除与 Python 工程实践进行了精简重构。
 
-### 模块规模与当前对齐对照表
+### 模块规模与初始演进规划对照表
 
-| 模块名称 | 原工程文件数 / 行数 | 核心定位与技术难点 | 当前 OrangeCode 状态 |
+| 模块名称 | 参考工程文件数 / 行数 | 核心定位与技术难点 | 初始规划基线 |
 | :--- | :--- | :--- | :--- |
 | **`spine`** | 9 文件 / 1,479 行 | Lane/Worker 串行、OriginPools、抢占打断、Barrier 同步 | 🟡 核心跑通，待补齐 Barrier 与 Teardown 级联 |
 | **`agent`** | 30 文件 / 7,463 行 | Subagent 层次体系、Tool 语义索引、MCP 协议、Ask User 阻断 | 🟡 基础 Loop 跑通，待扩展 Subagent 与完整内置工具 |
 | **`context_engine`**| 16 文件 / 3,300 行 | Curator 决策器、两阶段装配流水线、Turn 摘要、原子裁剪 | 🟡 预算与闭包跑通，待完善分段 SegmentBuilders |
 | **`providers`** | 12 文件 / 2,931 行 | 指数退避、跨模型自动 Fallback、Azure/Codex 专用适配器 | 🟡 LiteLLM 跑通，待补齐 Fallback 链与 OAuth Kit |
-| **`routing`** | 10 文件 / 1,282 行 | KNN 语义模型路由、分类器特征抽取、复杂任务大模型分流 | ⚪ 待复刻 |
-| **`call_efficiency`**| 9 文件 / 1,594 行 | Prompt 缓存对齐、模型目录静态缓存、动态定价与计费 | ⚪ 待复刻 |
-| **`token_wise`** | 8 文件 / 676 行 | System 与 Tail 提示词缓存优化器 | ⚪ 待复刻 |
+| **`routing`** | 10 文件 / 1,282 行 | KNN 语义模型路由、分类器特征抽取、复杂任务大模型分流 | ⚪ 规划接入 |
+| **`call_efficiency`**| 9 文件 / 1,594 行 | Prompt 缓存对齐、模型目录静态缓存、动态定价与计费 | ⚪ 规划接入 |
+| **`token_wise`** | 8 文件 / 676 行 | System 与 Tail 提示词缓存优化器 | ⚪ 规划接入 |
 | **`sandbox`** | 9 文件 / 1,730 行 | Anthropic SRT 操作系统沙箱、BoxLite MicroVM、Debug Server | 🟡 Direct/Isolated 跑通，待接入 SRT / BoxLite |
 | **`session`** | 3 文件 / 1,106 行 | 代际控制 (Storage Epoch)、跨进程文件锁、会话分叉与导出 | 🟡 基础存取跑通，待接入文件锁与 HTML/MD 导出 |
-| **`channels`** | 23 文件 / 2,348 行 | 飞书、企微、QQ 机器人适配器、多媒体转码与流式推送 | ⚪ 待复刻 |
-| **`tracing`** | 8 文件 / 1,879 行 | OpenTelemetry 语义约定、分布式 Span 收集、本地 Web 查看器 | ⚪ 待复刻 |
-| **`memory_engine`** | 21 文件 / 4,500 行 | Skill Forge 动态铸造、长期记忆整理、记忆合流 (Fusion) | ⚪ 待复刻 |
-| **`evolver`** | 63 文件 / 17,328 行 | 进化树、多臂老虎机 (Bandit)、Fisher 统计门禁、代码自改进 | ⚪ 待复刻（原工程最大模块） |
-| **`proactive_engine`**| 5 文件 / 1,522 行 | Cron 定时任务、后台常驻触发器 | ⚪ 待复刻 |
-| **`tui_rpc`** | 20 文件 / 5,015 行 | JSON-RPC 双向服务、确认代理 (ConfirmBroker)、问题代理 | ⚪ 待复刻 |
-| **`ui-tui`** | 数十文件 / 数万行 TS | Node.js 22 + React + Ink 原生终端 UI | ⚪ 待复刻 |
+| **`channels`** | 23 文件 / 2,348 行 | 飞书、企微、QQ 机器人适配器、多媒体转码与流式推送 | ⚪ 规划接入 |
+| **`tracing`** | 8 文件 / 1,879 行 | OpenTelemetry 语义约定、分布式 Span 收集、本地 Web 查看器 | ⚪ 规划接入 |
+| **`memory_engine`** | 21 文件 / 4,500 行 | Skill Forge 动态铸造、长期记忆整理、记忆合流 (Fusion) | ⚪ 规划接入 |
+| **`evolver`** | 63 文件 / 17,328 行 | 进化树、多臂老虎机 (Bandit)、Fisher 统计门禁、代码自改进 | ⚪ 规划接入（体量最大子系统） |
+| **`proactive_engine`**| 5 文件 / 1,522 行 | Cron 定时任务、后台常驻触发器 | ⚪ 规划接入 |
+| **`tui_rpc`** | 20 文件 / 5,015 行 | JSON-RPC 双向服务、确认代理 (ConfirmBroker)、问题代理 | ⚪ 规划接入 |
+| **`ui-tui`** | 数十文件 / 数万行 TS | Node.js 22 + React + Ink 原生终端 UI | ⚪ 规划接入 |
 | **`config`** | 8 文件 / 2,944 行 | 多 Provider 热重载、渠道授权持久化、Schema 校验 | 🟡 基础 settings 跑通，待补全动态热更 |
 | **`cli`** | 33 文件 / 10,189 行 | 20+ 个生产级子命令组（gateway、cron、doctor、evolve 等） | 🟡 基础 run/chat/session 跑通，待完善矩阵 |
-| **`auth & security`**| 7 文件 / 398 行 | 权能 Token (Capability Token)、白名单网络访问控制 | ⚪ 待复刻 |
-| **`eval_engine`** | 14 文件 / 799 行 | 迭代前/后审计钩子 (Tool Audit Hook)、大模型裁判裁判器 | ⚪ 待复刻 |
-| **`plugin`** | 7 文件 / 1,024 行 | 插件清单规范 (Manifest)、动态载入与隔离发现 | ⚪ 待复刻 |
-| **`benchmarks`** | 6 大测试套件 | CodeFlowBench, AppWorld, PinchBench, ClawBench 等 | ⚪ 待复刻 |
+| **`auth & security`**| 7 文件 / 398 行 | 权能 Token (Capability Token)、白名单网络访问控制 | ⚪ 规划接入 |
+| **`eval_engine`** | 14 文件 / 799 行 | 迭代前/后审计钩子 (Tool Audit Hook)、大模型裁判裁判器 | ⚪ 规划接入 |
+| **`plugin`** | 7 文件 / 1,024 行 | 插件清单规范 (Manifest)、动态载入与隔离发现 | ⚪ 规划接入 |
+| **`benchmarks`** | 6 大测试套件 | OrangeCodeBench, AppWorld, PinchBench, ClawBench 等 | ⚪ 规划集成 |
 
 ---
 
-## 2. 22 个子系统 1:1 详细功能矩阵与契约规范
+## 2. 22 个子系统核心能力矩阵与设计契约
 
 ### 2.1 Spine 并发调度与多会话管道 (`spine`)
 - **文件清单**：
@@ -80,7 +80,7 @@
   - `scheduler.py`: `Lane` / `Worker` 模型，`_inject_mailbox` 暂存机制，`BusyPolicy` (`APPEND`, `INTERRUPT`, `INJECT`)，空闲 Reaper 清理（默认 300s TTL）。
   - `teardown.py`: 四阶段关闭流程：Seal -> Drain -> Grace -> Cascade。
   - `turn.py`: `TurnRequest` (不可变 frozen dataclass)、`TurnHandle`。
-- **1:1 复刻标准**：
+- **核心设计准则**：
   - 调度器完全接管所有生命周期状态与 Terminal Future 的 Resolve 唯一所有权；
   - 同一 Lane 内任务严格按顺序串行，跨 Lane 依据 OriginPools 并发。
 
@@ -114,7 +114,7 @@
 - **关键文件与算法**：
   - `assembler.py`: `ContextAssembler` 实现双阶段组装。
   - `history_trimmer.py`:
-    - `canonical_ids`: 工具调用/结果双向传递闭包（严防悬空）。
+    - `canonical_ids`: 工具调用/结果双向传递闭包（避免悬空）。
     - `structural_errors`: 协议配对校验。
     - `compact_tool_results`: 历史旧工具输出折叠（保留首尾）。
     - `trim`: 按整轮 User 边界（Turn Groups）降级丢弃。
@@ -141,10 +141,10 @@
 ### 2.6 Call Efficiency & Token-Wise 提示词缓存与成本核算
 - **大模型 Prompt Caching 优化**：
   - `system_and_tail_cache.py`:
-    - **前缀静态对齐**：确保 System Prompt 与工具定义在多轮调用间字符完全一致，实现 100% 命中大模型前缀缓存（如 Claude / DeepSeek Cache）。
+    - **前缀静态对齐**：确保 System Prompt 与工具定义在多轮调用间保持前缀一致，最大化提升大模型前缀缓存命中率（如 Claude / DeepSeek Cache）。
     - **尾部滑动缓存**：对最近几轮的历史上下文保持稳定结构。
   - `pricing.py`: 维护主流模型按每百万 Token 输入/输出/缓存命中的真实价格表。
-  - `ledger.py` & `usage_tracker.py`: 记录每次调用的绝对财务成本并支持明细导出。
+  - `ledger.py` & `usage_tracker.py`: 记录每次调用的明细成本并支持汇总导出。
 
 ### 2.7 Sandbox 操作系统与微虚拟机级安全沙箱 (`sandbox`)
 - **多层级沙箱方案**：
@@ -252,7 +252,7 @@
 
 ### 2.21 Benchmarks 标准基准评测套件 (`benchmarks`)
 - **基准测试数据与 Runner**：
-  - `codeflowbench`: 针对 Runtime、Context 治理与工具准确度的定制基准。
+  - `orangecodebench`: 针对 Runtime、Context 治理与工具准确度的定制基准。
   - `pinchbench`, `appworld`, `clawbench`: 跨平台、长链条复合任务测试套件。
 
 ### 2.22 Templates & Onboarding 引导模板与契约文档
@@ -264,9 +264,9 @@
 
 ---
 
-## 3. 1:1 全量复刻阶段实施里程碑
+## 3. 分阶段演进实施里程碑
 
-为了保证代码质量与功能零遗漏，整个复刻工程划分为 **6 大攻坚里程碑**，每个阶段均包含源码实现与独立单元测试覆盖：
+为了保证代码质量与核心能力完整性，整个工程划分为 **6 大实施里程碑**，每个阶段均包含核心源码实现与独立单元测试覆盖：
 
 ```mermaid
 flowchart LR
@@ -293,14 +293,14 @@ flowchart LR
 - **Milestone 5: 记忆提炼与 Evolver 技能自进化系统**
   - 交付物：Skill Forge 自动铸造、长期记忆 Consolidator、Evolver 进化树、Fisher 统计检验门禁、Bandit 调度。
 - **Milestone 6: 跨语言 TUI 交互界面、评测套件与完整 CLI 矩阵**
-  - 交付物：JSON-RPC 2.0 服务端 (`tui_rpc`)、Node.js 22 + React + Ink TUI 前端、CodeFlowBench 评测套件、`orangecode doctor / evolve / cron` 等全量 CLI 命令。
+  - 交付物：JSON-RPC 2.0 服务端 (`tui_rpc`)、Node.js 22 + React + Ink TUI 前端、OrangeCodeBench 评测套件、`orangecode doctor / evolve / cron` 等全量 CLI 命令。
 
 ---
 
-## 4. 质量验收与对齐度校验契约
+## 4. 质量验收与工程校验准则
 
-每个里程碑代码合并前，必须满足以下硬性指标：
-1. **测试通过率 100%**：使用 `uv run pytest` 执行全量自动化测试，无任何 Skip/Fail。
-2. **代码规范零警告**：使用 `uv run ruff check .` 执行静态分析，通过全部类型与格式检查。
-3. **接口签名 1:1 对齐**：函数参数、返回值类型、异常定义与原项目保持严格兼容。
+每个里程碑代码合并前，应满足以下工程验收标准：
+1. **自动化测试全通过**：使用 `uv run pytest` 执行自动化测试集，确保核心逻辑无 Skip/Fail。
+2. **代码规范零警告**：使用 `uv run ruff check .` 执行静态分析，通过类型与格式检查。
+3. **核心语义与接口兼容**：关键能力、数据结构与协议语义与参考架构保持良好对齐，并在命名与内部实现上结合 OrangeCode 进行精简重构。
 4. **Git 提交原子化**：每个子功能均有独立、清晰的 Commit 记录。
