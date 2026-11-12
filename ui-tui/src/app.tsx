@@ -43,8 +43,8 @@ function useTerminalBackgroundProbe() {
 
 // 使用主题主色绘制终端硬件光标。TTY 聚焦时，输入光标是由
 // useDeclaredCursor 定位的终端自身光标，只能通过 OSC 12 改色，文本 SGR
-// 无法影响它。OSC 11 探测导致配色切换时会重新发送颜色（亮色 #B87900，
-// 暗色 #fbe23f）；卸载时通过 OSC 112 重置，resetTerminalModes() 也会重置，
+// 无法影响它。OSC 11 探测导致配色切换时会重新发送颜色（亮色 #c94e00，
+// 暗色 #ff8c42）；卸载时通过 OSC 112 重置，resetTerminalModes() 也会重置，
 // 确保信号或崩溃退出后恢复用户原有的光标颜色。
 const setCursorColorSeq = (hex: string) => `]12;${hex}`
 const RESET_CURSOR_COLOR_SEQ = ']112'

@@ -12,8 +12,19 @@ import { DEFAULT_THEME } from '../theme.js'
 
 describe('Branding', () => {
   it('renders without throwing when invoked with no props', () => {
-    // 布局会按终端宽度选择完整、堆叠或紧凑模式，三者都必须正确渲染。
+    // 布局会按终端宽度选择完整或紧凑模式，两者都必须正确渲染。
     expect(() => render(<Branding />)).not.toThrow()
+  })
+
+  it('keeps Banner branding to Orange without Code suffix', () => {
+    const wide = render(<Branding maxCols={80} t={DEFAULT_THEME} />).lastFrame() ?? ''
+    const narrow = render(<Branding maxCols={28} t={DEFAULT_THEME} />).lastFrame() ?? ''
+
+    expect(wide).toContain('▄███▄')
+    expect(wide).toContain('Orange')
+    expect(wide).not.toContain('OrangeCode')
+    expect(narrow).toContain('Orange')
+    expect(narrow).not.toContain('OrangeCode')
   })
 })
 

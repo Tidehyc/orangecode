@@ -53,11 +53,11 @@ describe('DEFAULT_THEME', () => {
   it('has color palette', async () => {
     const { DEFAULT_THEME } = await importThemeWithCleanEnv()
 
-    expect(DEFAULT_THEME.color.primary).toBe('#c8c8c8')
-    expect(DEFAULT_THEME.color.accent).toBe('#7aa2f7')
-    expect(DEFAULT_THEME.color.surface).toBe('#141414')
-    expect(DEFAULT_THEME.color.surfaceRaised).toBe('#242424')
-    expect(DEFAULT_THEME.color.thinking).toBe('#bb9af7')
+    expect(DEFAULT_THEME.color.primary).toBe('#ff8c42')
+    expect(DEFAULT_THEME.color.accent).toBe('#ff7a1a')
+    expect(DEFAULT_THEME.color.surface).toBe('#14110f')
+    expect(DEFAULT_THEME.color.surfaceRaised).toBe('#241c17')
+    expect(DEFAULT_THEME.color.thinking).toBe('#e0a96d')
     expect(DEFAULT_THEME.color.error).toBe('#f7768e')
   })
 })
@@ -80,28 +80,26 @@ describe('LIGHT_THEME', () => {
   })
 })
 
-describe('brand yellow ramp (title-gradient-table.md)', () => {
-  // 真彩色顺序为 [.50,.100,.300,.500,.600,.700,.900,.950,.990]，额外的 .600
-  // 使 .700 位于索引 5、.900 位于索引 6。256 色级别保留八阶集合
-  // [.50,.100,.300,.500,.700,.900,.950,.990]，其中 .700 位于索引 4。
+describe('brand orange ramp', () => {
+  // 真彩色顺序为 [.50,.100,.300,.500,.600,.700,.900,.950,.990]，256 色级别保留八阶集合。
   it('keeps the documented dark title bands', async () => {
     const { DARK_THEME } = await importThemeWithCleanEnv()
 
-    expect(DARK_THEME.yellow[0]).toBe('#fff7c2') // .50
-    expect(DARK_THEME.yellow[2]).toBe('#FFE573') // .300
-    expect(DARK_THEME.yellow[3]).toBe('#fbe23f') // .500
-    expect(DARK_THEME.yellow[5]).toBe('#c8a900') // .700
-    expect(DARK_THEME.yellow[6]).toBe('#8a6d00') // .900
+    expect(DARK_THEME.yellow[0]).toBe('#ffe8d1') // .50
+    expect(DARK_THEME.yellow[2]).toBe('#ffa85c') // .300
+    expect(DARK_THEME.yellow[3]).toBe('#ff7a1a') // .500
+    expect(DARK_THEME.yellow[5]).toBe('#cc5200') // .700
+    expect(DARK_THEME.yellow[6]).toBe('#8f3800') // .900
   })
 
-  it('gives light its own gold ramp re-derived around #B87900, not the dark scale', async () => {
+  it('gives light its own burnt-orange ramp re-derived around #c94e00, not the dark scale', async () => {
     const { DARK_THEME, LIGHT_THEME } = await importThemeWithCleanEnv()
 
-    expect(LIGHT_THEME.yellow[0]).toBe('#F6DA8B') // .50
-    expect(LIGHT_THEME.yellow[2]).toBe('#D9A83A') // .300
-    expect(LIGHT_THEME.yellow[3]).toBe('#B87900') // .500
-    expect(LIGHT_THEME.yellow[5]).toBe('#935F00') // .700
-    expect(LIGHT_THEME.yellow[6]).toBe('#684300') // .900
+    expect(LIGHT_THEME.yellow[0]).toBe('#ffd5b0') // .50
+    expect(LIGHT_THEME.yellow[2]).toBe('#e66d17') // .300
+    expect(LIGHT_THEME.yellow[3]).toBe('#c94e00') // .500
+    expect(LIGHT_THEME.yellow[5]).toBe('#8c3400') // .700
+    expect(LIGHT_THEME.yellow[6]).toBe('#662600') // .900
 
     expect(LIGHT_THEME.yellow).not.toEqual(DARK_THEME.yellow)
   })
@@ -114,20 +112,20 @@ describe('brand yellow ramp (title-gradient-table.md)', () => {
 
     // 256 色采用八阶集合：.50/.300/.500/.700/.900 对应索引 0/2/3/4/5。
     expect([dark[0], dark[2], dark[3], dark[4], dark[5]]).toEqual([
-      'ansi256(229)',
-      'ansi256(228)',
-      'ansi256(220)',
-      'ansi256(178)',
-      'ansi256(94)'
+      'ansi256(223)',
+      'ansi256(215)',
+      'ansi256(208)',
+      'ansi256(166)',
+      'ansi256(130)'
     ])
-    // yellow.300 与 yellow.500 不能折叠到同一个 256 色索引。
+    // .300 与 .500 不能折叠到同一个 256 色索引。
     expect(dark[2]).not.toBe(dark[3])
     expect([light[0], light[2], light[3], light[4], light[5]]).toEqual([
-      'ansi256(222)',
-      'ansi256(179)',
-      'ansi256(136)',
+      'ansi256(216)',
+      'ansi256(166)',
+      'ansi256(130)',
       'ansi256(94)',
-      'ansi256(58)'
+      'ansi256(52)'
     ])
 
     expect(light).not.toEqual(dark)
@@ -146,17 +144,17 @@ describe('cursorColorHex (OSC 12 hardware cursor)', () => {
     const { cursorColorHex, resolveTheme } = await importThemeWithCleanEnv()
 
     // 第 1/2 级保存 ANSI 索引，但 OSC 12 需要 RGB 颜色。
-    expect(cursorColorHex(resolveTheme('dark', 3))).toBe('#c8c8c8')
-    expect(cursorColorHex(resolveTheme('dark', 2))).toBe('#c8c8c8')
-    expect(cursorColorHex(resolveTheme('dark', 1))).toBe('#c8c8c8')
+    expect(cursorColorHex(resolveTheme('dark', 3))).toBe('#ff8c42')
+    expect(cursorColorHex(resolveTheme('dark', 2))).toBe('#ff8c42')
+    expect(cursorColorHex(resolveTheme('dark', 1))).toBe('#ff8c42')
   })
 
   it('uses the light title color across all tiers when the scheme is light', async () => {
     const { cursorColorHex, resolveTheme } = await importThemeWithEnv({ ORANGECODE_TUI_THEME: 'light' })
 
-    expect(cursorColorHex(resolveTheme('light', 3))).toBe('#444444')
-    expect(cursorColorHex(resolveTheme('light', 2))).toBe('#444444')
-    expect(cursorColorHex(resolveTheme('light', 1))).toBe('#444444')
+    expect(cursorColorHex(resolveTheme('light', 3))).toBe('#c94e00')
+    expect(cursorColorHex(resolveTheme('light', 2))).toBe('#c94e00')
+    expect(cursorColorHex(resolveTheme('light', 1))).toBe('#c94e00')
   })
 })
 
@@ -417,16 +415,16 @@ describe('resolveTheme', () => {
   it('uses curated ansi256 values at tier 2', async () => {
     const { resolveTheme } = await importThemeWithCleanEnv()
 
-    expect(resolveTheme('dark', 2).color.primary).toBe('ansi256(251)')
-    expect(resolveTheme('dark', 2).color.thinking).toBe('ansi256(141)')
-    expect(resolveTheme('light', 2).color.primary).toBe('ansi256(238)')
+    expect(resolveTheme('dark', 2).color.primary).toBe('ansi256(209)')
+    expect(resolveTheme('dark', 2).color.thinking).toBe('ansi256(179)')
+    expect(resolveTheme('light', 2).color.primary).toBe('ansi256(166)')
   })
 
   it('uses named 16-color values at tier 1', async () => {
     const { resolveTheme } = await importThemeWithCleanEnv()
 
     expect(resolveTheme('dark', 1).color.primary).toBe('ansi:white')
-    expect(resolveTheme('dark', 1).color.accent).toBe('ansi:blueBright')
+    expect(resolveTheme('dark', 1).color.accent).toBe('ansi:yellowBright')
     expect(resolveTheme('dark', 1).color.thinking).toBe('ansi:magentaBright')
   })
 

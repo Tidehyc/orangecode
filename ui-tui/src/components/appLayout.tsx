@@ -26,7 +26,7 @@ import { fmtK } from '../lib/text.js'
 import { AgentsOverlay } from './agentsOverlay.js'
 import { GoodVibesHeart, StatusRule, StickyPromptTracker, TranscriptScrollbar } from './appChrome.js'
 import { FloatingOverlays, PromptZone } from './appOverlays.js'
-import { Panel, SessionPanel, StartupLoader } from './branding.js'
+import { Banner, Panel, SessionPanel, StartupLoader } from './branding.js'
 import { FpsOverlay } from './fpsOverlay.js'
 import { HelpHint } from './helpHint.js'
 import { MessageLine } from './messageLine.js'
@@ -104,7 +104,10 @@ const TranscriptPane = memo(function TranscriptPane({
               {row.msg.kind === 'intro' ? (
                 <Box flexDirection="column" paddingTop={1}>
                   {row.msg.info ? (
-                    <SessionPanel info={row.msg.info} sid={ui.sid} t={ui.theme} />
+                    <>
+                      {!ui.compact && <Banner maxCols={composer.cols} t={ui.theme} />}
+                      <SessionPanel info={row.msg.info} sid={ui.sid} t={ui.theme} />
+                    </>
                   ) : (
                     <StartupLoader t={ui.theme} />
                   )}

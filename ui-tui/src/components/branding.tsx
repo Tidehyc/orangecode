@@ -9,6 +9,7 @@ import unicodeSpinners from 'unicode-animations'
 
 import type { PanelSection, SessionInfo } from '../types.js'
 
+import { orangeCodeLogoWord, ORANGECODE_WORD_WIDTH, parseRichMarkup } from '../banner.js'
 import { flat } from '../lib/text.js'
 import { DEFAULT_THEME, type Theme } from '../theme.js'
 
@@ -116,15 +117,23 @@ export function formatProvider(slug?: string, modelId?: string): string {
   return PROVIDER_LABELS[key] ?? effective.charAt(0).toUpperCase() + effective.slice(1)
 }
 
-export function Branding({ t }: { t?: Theme } = {}) {
+export function Branding({ maxCols, t }: { maxCols?: number; t?: Theme } = {}) {
   const theme = t ?? DEFAULT_THEME
+  const stdoutCols = useStdout().stdout?.columns ?? 100
+  const cols = maxCols ?? stdoutCols
+  const showWordmark = Boolean(theme.bannerLogo) || cols >= ORANGECODE_WORD_WIDTH + 2
+  const logoLines = theme.bannerLogo ? parseRichMarkup(theme.bannerLogo) : orangeCodeLogoWord(theme.yellow)
 
   return (
-    <Box marginBottom={1}>
-      <Text bold color={theme.color.text}>
-        {theme.brand.name}
-      </Text>
-      <Text color={theme.color.muted}> · agent harness</Text>
+    <Box flexDirection="column" marginBottom={1}>
+      {showWordmark && <ArtLines lines={logoLines} />}
+      <Box marginTop={showWordmark ? 1 : 0}>
+        <Text color={theme.color.accent}>{theme.brand.icon} </Text>
+        <Text bold color={theme.color.primary}>
+          Orange
+        </Text>
+        <Text color={theme.color.muted}> · agent harness</Text>
+      </Box>
     </Box>
   )
 }
@@ -290,7 +299,7 @@ export function SessionPanel({ info, maxCols, sid, t }: SessionPanelProps) {
       </Box>
 
       <Box paddingX={1}>
-        <Text color={t.color.muted} wrap="truncate-end">
+        <Text color={t.color.path} wrap="truncate-end">
           {info.cwd || process.cwd()}
         </Text>
       </Box>

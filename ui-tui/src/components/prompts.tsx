@@ -14,11 +14,20 @@ import { CONFIRM_COUNTDOWN_SECONDS, tickCountdown } from '../lib/confirmCountdow
 import { isMac } from '../lib/platform.js'
 import { TextInput } from './textInput.js'
 
-export function ClarifyPrompt({ cols = 80, onAnswer, onCancel, req, t }: ClarifyPromptProps) {
+export function ClarifyPrompt({ cols = 80, onAnswer, onCancel, onTypingChange, req, t }: ClarifyPromptProps) {
   const [sel, setSel] = useState(0)
   const [custom, setCustom] = useState('')
   const [typing, setTyping] = useState(false)
   const choices = req.choices ?? []
+  const isTextInputActive = typing || !choices.length
+
+  useEffect(() => {
+    onTypingChange?.(isTextInputActive)
+
+    return () => {
+      onTypingChange?.(false)
+    }
+  }, [isTextInputActive, onTypingChange])
 
   const heading = (
     <Text bold>
@@ -59,12 +68,12 @@ export function ClarifyPrompt({ cols = 80, onAnswer, onCancel, req, t }: Clarify
 
   if (typing || !choices.length) {
     return (
-      <Box flexDirection="column">
+      <Box borderColor={t.color.sessionBorder} borderStyle="round" flexDirection="column" paddingX={1}>
         {heading}
 
         <Box>
-          <Text color={t.color.label}>{'> '}</Text>
-          <TextInput columns={Math.max(20, cols - 6)} onChange={setCustom} onSubmit={onAnswer} value={custom} />
+          <Text color={t.color.prompt}>{'> '}</Text>
+          <TextInput columns={Math.max(20, cols - 8)} onChange={setCustom} onSubmit={onAnswer} value={custom} />
         </Box>
 
         <Text color={t.color.muted}>
@@ -76,12 +85,12 @@ export function ClarifyPrompt({ cols = 80, onAnswer, onCancel, req, t }: Clarify
   }
 
   return (
-    <Box flexDirection="column">
+    <Box borderColor={t.color.sessionBorder} borderStyle="round" flexDirection="column" paddingX={1}>
       {heading}
 
       {[...choices, 'Other (type your answer)'].map((c, i) => (
         <Text key={i}>
-          <Text bold={sel === i} color={sel === i ? t.color.label : t.color.muted} inverse={sel === i}>
+          <Text bold={sel === i} color={sel === i ? t.color.accent : t.color.muted} inverse={sel === i}>
             {sel === i ? '▸ ' : '  '}
             {i + 1}. {c}
           </Text>
@@ -194,7 +203,7 @@ export function ConfirmPrompt({ onCancel, onConfirm, req, t }: ConfirmPromptProp
   ]
 
   return (
-    <Box borderColor={t.color.border} borderStyle="round" flexDirection="column" paddingX={1}>
+    <Box borderColor={req.danger ? t.color.error : t.color.sessionBorder} borderStyle="round" flexDirection="column" paddingX={1}>
       <Text bold color={accent}>
         {req.danger ? '⚠' : '?'} {req.title ?? req.prompt ?? 'Continue?'}
       </Text>
@@ -225,6 +234,7 @@ interface ClarifyPromptProps {
   cols?: number
   onAnswer: (s: string) => void
   onCancel: () => void
+  onTypingChange?: (typing: boolean) => void
   req: ClarifyReq
   t: Theme
 }

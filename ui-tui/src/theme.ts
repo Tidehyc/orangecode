@@ -119,61 +119,55 @@ const cleanPromptSymbol = (s: string | undefined, fallback: string) => {
   return cleaned || fallback
 }
 
-// ── 品牌黄色色阶（渐变标志/立体阴影）────────────────────────────────
+// ── 品牌橙色色阶（渐变标志/立体阴影）────────────────────────────────
 //
 // 品牌资产（orangecode-tui-design-system 的“品牌色阶”），按从亮到暗排序，用于渐变横幅图案。
-// .50/.300/.500/.700/.900 是文档定义的标题色带
-// （docs/tui-color-problem/title-gradient-table.md），其他节点为插值。横幅只读取前几个主色带，
-// 并回退到最后一个，因此色阶长度不影响正确性。
-//
-// 真彩额外包含 .600 节点，使主视觉渐变更平滑，共 9 项：
-// [.50,.100,.300,.500,.600,.700,.900,.950,.990]。256/16 色层级保留文档定义的 8 项集合，
-// 不含 .600。真彩和 256 色的深色/浅色色阶彼此独立；浅色围绕 #B87900 重新推导，不是暗色色阶
-// 降亮度。16 色统一使用 `yellow`。
+// 字段名保留 `yellow` 以兼容现有皮肤与类型接口；真彩包含 9 项（.50..990），
+// 256/16 色保留 8 项。浅色围绕 #c94e00 深焦糖橙重新推导，保证白底高对比可读。
 
 const YELLOW_RAMP_TC_DARK: readonly string[] = [
-  '#fff7c2', // 50
-  '#fff0a4', // 100
-  '#FFE573', // 300
-  '#fbe23f', // 500
-  '#e1c405', // 600
-  '#c8a900', // 700
-  '#8a6d00', // 900
-  '#594600', // 950
-  '#2d2300' // 990
+  '#ffe8d1', // 50
+  '#ffd4ad', // 100
+  '#ffa85c', // 300
+  '#ff7a1a', // 500
+  '#eb6505', // 600
+  '#cc5200', // 700
+  '#8f3800', // 900
+  '#5c2400', // 950
+  '#2e1200' // 990
 ]
 
 const YELLOW_RAMP_TC_LIGHT: readonly string[] = [
-  '#F6DA8B',
-  '#EBC76C',
-  '#D9A83A',
-  '#B87900', // 500
-  '#935F00', // 600
-  '#935F00', // 700
-  '#684300',
-  '#432B00',
-  '#221600'
+  '#ffd5b0', // 50
+  '#ffbc82', // 100
+  '#e66d17', // 300
+  '#c94e00', // 500
+  '#a63f00', // 600
+  '#8c3400', // 700
+  '#662600', // 900
+  '#421900', // 950
+  '#210c00' // 990
 ]
 
 const YELLOW_RAMP_256_DARK: readonly string[] = [
-  'ansi256(229)',
-  'ansi256(229)',
-  'ansi256(228)',
-  'ansi256(220)', // 500
-  'ansi256(178)',
+  'ansi256(223)',
+  'ansi256(223)',
+  'ansi256(215)',
+  'ansi256(208)', // 500
+  'ansi256(166)',
+  'ansi256(130)',
   'ansi256(94)',
-  'ansi256(58)',
   'ansi256(234)'
 ]
 
 const YELLOW_RAMP_256_LIGHT: readonly string[] = [
-  'ansi256(222)',
-  'ansi256(222)',
-  'ansi256(179)',
-  'ansi256(136)',
+  'ansi256(216)',
+  'ansi256(216)',
+  'ansi256(166)',
+  'ansi256(130)', // 500
   'ansi256(94)',
-  'ansi256(58)',
-  'ansi256(58)',
+  'ansi256(52)',
+  'ansi256(52)',
   'ansi256(234)'
 ]
 
@@ -202,44 +196,44 @@ function yellowRamp(tier: 0 | 1 | 2 | 3, scheme: ColorScheme): readonly string[]
 
 export const DARK_THEME: Theme = {
   color: {
-    primary: '#c8c8c8',
-    accent: '#7aa2f7',
-    border: '#323237',
-    text: '#e1e1e1',
-    muted: '#6c6c6c',
-    surface: '#141414',
-    surfaceRaised: '#242424',
-    heading: '#73daca',
-    info: '#7aa2f7',
+    primary: '#ff8c42',
+    accent: '#ff7a1a',
+    border: '#3d3028',
+    text: '#f2ebe4',
+    muted: '#8f7d70',
+    surface: '#14110f',
+    surfaceRaised: '#241c17',
+    heading: '#ffb347',
+    info: '#ffa057',
     path: '#ff9e64',
-    thinking: '#bb9af7',
-    completionBg: '#242424',
-    completionCurrentBg: '#363636',
-    completionMetaBg: '#242424',
-    completionMetaCurrentBg: '#363636',
+    thinking: '#e0a96d',
+    completionBg: '#241c17',
+    completionCurrentBg: '#3d2b1f',
+    completionMetaBg: '#241c17',
+    completionMetaCurrentBg: '#3d2b1f',
 
-    label: '#c8c8c8',
+    label: '#ffb380',
     ok: '#9ece6a',
     error: '#f7768e',
-    warn: '#e0af68',
+    warn: '#ffb347',
 
-    prompt: '#c8c8c8',
-    sessionLabel: '#6c6c6c',
-    sessionBorder: '#505058',
+    prompt: '#ff7a1a',
+    sessionLabel: '#8f7d70',
+    sessionBorder: '#7a4b2a',
 
-    statusBg: '#141414',
-    statusFg: '#6c6c6c',
+    statusBg: '#1a1410',
+    statusFg: '#9b8778',
     statusGood: '#9ece6a',
-    statusWarn: '#e0af68',
+    statusWarn: '#ff944d',
     statusBad: '#f7768e',
     statusCritical: '#f7768e',
-    selectionBg: '#363636',
+    selectionBg: '#3d2b1f',
 
     diffAdded: '#063806',
     diffRemoved: '#420e14',
     diffAddedWord: '#9ece6a',
     diffRemovedWord: '#f7768e',
-    shellDollar: '#e0af68'
+    shellDollar: '#ffb347'
   },
 
   brand: BRAND,
@@ -249,48 +243,48 @@ export const DARK_THEME: Theme = {
   yellow: YELLOW_RAMP_TC_DARK
 }
 
-// 浅色终端调色板：使用更深、对比更高且在白底上清晰的颜色。结构与 DARK_THEME 相同，
+// 浅色终端调色板：使用更深、对比更高且在白底上清晰的焦糖橙系颜色，保持与 DARK_THEME 相同结构，
 // 使 `fromSkin` 仍能干净叠加（#11300）。
 export const LIGHT_THEME: Theme = {
   color: {
-    primary: '#444444',
-    accent: '#2f64d2',
-    border: '#c8c8cd',
-    text: '#262626',
-    muted: '#767676',
-    surface: '#eeeeee',
-    surfaceRaised: '#dedede',
-    heading: '#0c947c',
-    info: '#2f64d2',
-    path: '#c3691e',
-    thinking: '#7d4bc6',
-    completionBg: '#dedede',
-    completionCurrentBg: '#c6c6c6',
-    completionMetaBg: '#dedede',
-    completionMetaCurrentBg: '#c6c6c6',
+    primary: '#c94e00',
+    accent: '#d95300',
+    border: '#dfd2c7',
+    text: '#291f18',
+    muted: '#786557',
+    surface: '#f5efe9',
+    surfaceRaised: '#e9ded3',
+    heading: '#b84300',
+    info: '#d95300',
+    path: '#b34700',
+    thinking: '#995226',
+    completionBg: '#e9ded3',
+    completionCurrentBg: '#f2c9a6',
+    completionMetaBg: '#e9ded3',
+    completionMetaCurrentBg: '#f2c9a6',
 
-    label: '#444444',
-    ok: '#378e23',
+    label: '#7a3b14',
+    ok: '#2f8524',
     error: '#cd3048',
-    warn: '#a27612',
+    warn: '#b85c00',
 
-    prompt: '#444444',
-    sessionLabel: '#767676',
-    sessionBorder: '#a5a5af',
+    prompt: '#d95300',
+    sessionLabel: '#786557',
+    sessionBorder: '#c98a5b',
 
-    statusBg: '#eeeeee',
-    statusFg: '#767676',
-    statusGood: '#378e23',
-    statusWarn: '#a27612',
+    statusBg: '#ece2d8',
+    statusFg: '#6e5c4f',
+    statusGood: '#2f8524',
+    statusWarn: '#c94e00',
     statusBad: '#cd3048',
     statusCritical: '#cd3048',
-    selectionBg: '#c6c6c6',
+    selectionBg: '#f2c9a6',
 
     diffAdded: '#daf2dc',
     diffRemoved: '#f5dade',
-    diffAddedWord: '#378e23',
+    diffAddedWord: '#2f8524',
     diffRemovedWord: '#cd3048',
-    shellDollar: '#a27612'
+    shellDollar: '#b85c00'
   },
 
   brand: BRAND,
@@ -300,35 +294,35 @@ export const LIGHT_THEME: Theme = {
   yellow: YELLOW_RAMP_TC_LIGHT
 }
 
-// ── 第 2 层：256 色（按设计令牌 docs/tui-color-problem/tokens.md）────────
+// ── 第 2 层：256 色（与 OrangeCode 真彩调色板保持色相一致）──────────────
 
 const DARK_256_COLORS: ThemeColors = {
-  primary: 'ansi256(251)',
-  accent: 'ansi256(111)',
-  border: 'ansi256(236)',
+  primary: 'ansi256(209)',
+  accent: 'ansi256(208)',
+  border: 'ansi256(237)',
   text: 'ansi256(254)',
-  muted: 'ansi256(242)',
+  muted: 'ansi256(244)',
   surface: 'ansi256(233)',
   surfaceRaised: 'ansi256(235)',
-  heading: 'ansi256(79)',
-  info: 'ansi256(111)',
+  heading: 'ansi256(215)',
+  info: 'ansi256(215)',
   path: 'ansi256(209)',
-  thinking: 'ansi256(141)',
+  thinking: 'ansi256(179)',
   completionBg: 'ansi256(235)',
   completionCurrentBg: 'ansi256(237)',
   completionMetaBg: 'ansi256(235)',
   completionMetaCurrentBg: 'ansi256(237)',
-  label: 'ansi256(251)',
+  label: 'ansi256(216)',
   ok: 'ansi256(149)',
   error: 'ansi256(210)',
-  warn: 'ansi256(179)',
-  prompt: 'ansi256(251)',
-  sessionLabel: 'ansi256(242)',
-  sessionBorder: 'ansi256(240)',
-  statusBg: 'ansi256(233)',
-  statusFg: 'ansi256(242)',
+  warn: 'ansi256(215)',
+  prompt: 'ansi256(208)',
+  sessionLabel: 'ansi256(244)',
+  sessionBorder: 'ansi256(130)',
+  statusBg: 'ansi256(234)',
+  statusFg: 'ansi256(244)',
   statusGood: 'ansi256(149)',
-  statusWarn: 'ansi256(179)',
+  statusWarn: 'ansi256(209)',
   statusBad: 'ansi256(210)',
   statusCritical: 'ansi256(210)',
   selectionBg: 'ansi256(237)',
@@ -336,44 +330,44 @@ const DARK_256_COLORS: ThemeColors = {
   diffRemoved: 'ansi256(52)',
   diffAddedWord: 'ansi256(149)',
   diffRemovedWord: 'ansi256(210)',
-  shellDollar: 'ansi256(179)'
+  shellDollar: 'ansi256(215)'
 }
 
 const LIGHT_256_COLORS: ThemeColors = {
-  primary: 'ansi256(238)',
-  accent: 'ansi256(26)',
+  primary: 'ansi256(166)',
+  accent: 'ansi256(166)',
   border: 'ansi256(251)',
   text: 'ansi256(234)',
   muted: 'ansi256(243)',
   surface: 'ansi256(255)',
   surfaceRaised: 'ansi256(253)',
-  heading: 'ansi256(29)',
-  info: 'ansi256(26)',
-  path: 'ansi256(166)',
-  thinking: 'ansi256(98)',
+  heading: 'ansi256(130)',
+  info: 'ansi256(166)',
+  path: 'ansi256(130)',
+  thinking: 'ansi256(94)',
   completionBg: 'ansi256(253)',
-  completionCurrentBg: 'ansi256(251)',
+  completionCurrentBg: 'ansi256(223)',
   completionMetaBg: 'ansi256(253)',
-  completionMetaCurrentBg: 'ansi256(251)',
-  label: 'ansi256(238)',
+  completionMetaCurrentBg: 'ansi256(223)',
+  label: 'ansi256(94)',
   ok: 'ansi256(28)',
-  error: 'ansi256(161)',
-  warn: 'ansi256(136)',
-  prompt: 'ansi256(238)',
+  error: 'ansi256(167)',
+  warn: 'ansi256(130)',
+  prompt: 'ansi256(166)',
   sessionLabel: 'ansi256(243)',
-  sessionBorder: 'ansi256(248)',
-  statusBg: 'ansi256(255)',
+  sessionBorder: 'ansi256(173)',
+  statusBg: 'ansi256(254)',
   statusFg: 'ansi256(243)',
   statusGood: 'ansi256(28)',
-  statusWarn: 'ansi256(136)',
-  statusBad: 'ansi256(161)',
-  statusCritical: 'ansi256(161)',
-  selectionBg: 'ansi256(251)',
+  statusWarn: 'ansi256(166)',
+  statusBad: 'ansi256(167)',
+  statusCritical: 'ansi256(167)',
+  selectionBg: 'ansi256(223)',
   diffAdded: 'ansi256(194)',
   diffRemoved: 'ansi256(224)',
   diffAddedWord: 'ansi256(28)',
-  diffRemovedWord: 'ansi256(161)',
-  shellDollar: 'ansi256(136)'
+  diffRemovedWord: 'ansi256(167)',
+  shellDollar: 'ansi256(130)'
 }
 
 // ── 第 1 层：16 色（按设计令牌 docs/tui-color-problem/tokens.md）─────────
@@ -385,27 +379,27 @@ const LIGHT_256_COLORS: ThemeColors = {
 
 const DARK_16_COLORS: ThemeColors = {
   primary: 'ansi:white',
-  accent: 'ansi:blueBright',
+  accent: 'ansi:yellowBright',
   border: 'ansi:blackBright',
   text: 'ansi:white',
   muted: 'ansi:blackBright',
   surface: 'ansi:black',
   surfaceRaised: 'ansi:blackBright',
-  heading: 'ansi:cyanBright',
-  info: 'ansi:blueBright',
+  heading: 'ansi:yellow',
+  info: 'ansi:yellowBright',
   path: 'ansi:yellow',
   thinking: 'ansi:magentaBright',
   completionBg: 'ansi:black',
   completionCurrentBg: 'ansi:blackBright',
   completionMetaBg: 'ansi:black',
   completionMetaCurrentBg: 'ansi:blackBright',
-  label: 'ansi:blackBright',
+  label: 'ansi:yellowBright',
   ok: 'ansi:greenBright',
   error: 'ansi:redBright',
   warn: 'ansi:yellow',
-  prompt: 'ansi:white',
+  prompt: 'ansi:yellowBright',
   sessionLabel: 'ansi:blackBright',
-  sessionBorder: 'ansi:blackBright',
+  sessionBorder: 'ansi:yellow',
   statusBg: 'ansi:black',
   statusFg: 'ansi:blackBright',
   statusGood: 'ansi:greenBright',
@@ -422,14 +416,14 @@ const DARK_16_COLORS: ThemeColors = {
 
 const LIGHT_16_COLORS: ThemeColors = {
   primary: 'ansi:black',
-  accent: 'ansi:blue',
+  accent: 'ansi:yellow',
   border: 'ansi:blackBright',
   text: 'ansi:black',
   muted: 'ansi:blackBright',
   surface: 'ansi:white',
   surfaceRaised: 'ansi:whiteBright',
-  heading: 'ansi:cyan',
-  info: 'ansi:blue',
+  heading: 'ansi:yellow',
+  info: 'ansi:yellow',
   path: 'ansi:yellow',
   thinking: 'ansi:magenta',
   completionBg: 'ansi:white',
@@ -440,9 +434,9 @@ const LIGHT_16_COLORS: ThemeColors = {
   ok: 'ansi:green',
   error: 'ansi:red',
   warn: 'ansi:yellow',
-  prompt: 'ansi:black',
+  prompt: 'ansi:yellow',
   sessionLabel: 'ansi:blackBright',
-  sessionBorder: 'ansi:blackBright',
+  sessionBorder: 'ansi:yellow',
   statusBg: 'ansi:white',
   statusFg: 'ansi:blackBright',
   statusGood: 'ansi:green',
